@@ -1,4 +1,4 @@
-local APIS_TO_LOAD = {'apis/events'}
+local APIS_TO_LOAD = {'apis/events', 'apis/colorutils', 'apis/rsw', 'apis/rsr', 'apis/rsclient'}
 
 -- 0. add /bin in path
 shell.setPath(shell.path(0) .. ":/bin")
@@ -12,6 +12,7 @@ bapil.hijackOSAPI()
 
 -- 3. load common apis
 for _, apipath in ipairs(APIS_TO_LOAD) do
+  print("=> loading ", apipath)
   assert(os.loadAPI(apipath))
 end
 

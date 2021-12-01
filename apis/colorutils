@@ -1,0 +1,45 @@
+ALL_COLORS = {"white", "orange", "magenta", "lightBlue", "yellow", "lime", "pink", "gray", "lightGray", "cyan",
+              "purple", "blue", "brown", "green", "red", "black"}
+
+function getColors(colormask)
+  local result = {}
+
+  if colormask == 0 then
+    return result
+  end
+
+  for _, v in ipairs(ALL_COLORS) do
+    if colors.test(colormask, colors[v]) then
+      table.insert(result, v)
+    end
+  end
+
+  return result
+end
+
+function getColorChange(colorname, oldMask, newMask)
+  local color = colors[colorname]
+
+  if not color then
+    error("colorutils::getColorChange error: invalid colorname provided (color string expected")
+  end
+
+  if type(oldMask) ~= "number" then
+    error("colorutils::getColorChange error: invalid oldMask provided (number expected)")
+  end
+
+  if type(newMask) ~= "number" then
+    error("colorutils::getColorChange error: invalid newMask provided (number expected)")
+  end
+
+  local oldState = colors.test(oldMask, color);
+  local newState = colors.test(newMask, color);
+
+  if not oldState and newState then
+    return "on"
+  elseif oldState and not newState then
+    return "off"
+  end
+
+  return nil
+end

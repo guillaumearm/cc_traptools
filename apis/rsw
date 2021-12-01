@@ -1,0 +1,92 @@
+local PERSITANCE_PREFIX = '/var/rsw/'
+
+local function writeFile(filepath, data)
+  local handler = fs.open(filepath, "w")
+
+  handler.write(data)
+  handler.close()
+end
+
+local function readFile(filepath)
+  local handler = fs.open(filepath, "r")
+  local data = handler.readAll()
+
+  handler.close();
+
+  return data;
+end
+
+-- Redstone writer library (with persistance)
+-- Warning: this is used for bundled colored redstone cable only
+--
+-- Usage:
+-- local rs = require('lib/rsw')('left')
+-- rs.reset()
+-- rs.set(colors.black, true)
+-- print(rs.get(colors.black) == true)
+function new(side)
+  if type(side) ~= "string" then
+    error("rswlib error: parameter 1 'side' should be a string")
+  end
+
+  local filepath = PERSITANCE_PREFIX .. side
+
+  local colormask;
+  if not fs.exists(filepath) then
+    colormask = redstone.getBundledOutput(side)
+
+    fs.makeDir(PERSITANCE_PREFIX)
+    writeFile(filepath, tostring(colormask))
+  else
+    colormask = tonumber(readFile(filepath))
+    redstone.setBundledOutput(side, colormask)
+  end
+
+  if type(colormask) ~= "number" then
+    error("rswlib error: invalid colormask readed from '" .. filepath .. "'")
+  end
+
+  local function get(color)
+    return colors.test(colormask, color)
+  end
+
+  local function set(color, enabled)
+    if type(enabled) ~= "boolean" then
+      error("rswlib error: set method should take a boolean as second parameter")
+    end
+
+    local newMask;
+
+    if enabled then
+      newMask = colors.combine(colormask, color);
+    else
+      newMask = colors.subtract(colormask, color);
+    end
+
+    if newMask ~= colormask then
+      colormask = newMask
+      redstone.setBundledOutput(side, colormask)
+      writeFile(filepath, tostring(colormask))
+      return true
+    end
+
+    return false
+  end
+
+  return {
+    get = get,
+    set = set,
+    mask = function()
+      return colormask
+    end,
+    reset = function()
+      if colormask == 0 then
+        return false
+      end
+
+      colormask = 0
+      redstone.setBundledOutput(side, colormask)
+      return true
+    end
+  }
+end

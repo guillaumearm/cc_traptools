@@ -1,0 +1,47 @@
+local SERVER_COMMAND_CHANNEL = 140;
+local OUTPUT_RESPONSE_FEEDBACK_CHANNEL = 141;
+local INPUT_RESPONSE_FEEDBACK_CHANNEL = 142;
+
+-- example:
+-- rsclient.write(colors.red + colors.blue, true)
+function write(color, colorstate)
+  local modem = peripheral.find("modem");
+
+  if type(color) ~= "number" then
+    error("librsclient error: invalid color (number expected)")
+  end
+
+  if type(colorstate) ~= "boolean" then
+    error("librsclient error: invalid colorstate (boolean expected)")
+  end
+
+  local type;
+  if colorstate then
+    type = "on"
+  else
+    type = "off"
+  end
+
+  modem.transmit(SERVER_COMMAND_CHANNEL, OUTPUT_RESPONSE_FEEDBACK_CHANNEL, {
+    type = type,
+    payload = color
+  })
+end
+
+function reset()
+  local modem = peripheral.find("modem");
+
+  modem.transmit(SERVER_COMMAND_CHANNEL, OUTPUT_RESPONSE_FEEDBACK_CHANNEL, {
+    type = 'reset'
+  });
+end
+
+function read_input_state()
+  -- 1. transmit getstate_input
+  -- 2. wait for response on chan 142 or timeout (2s)
+end
+
+function read_output_state()
+end
+
+read = read_input_state

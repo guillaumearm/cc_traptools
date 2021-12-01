@@ -1,8 +1,27 @@
+-- Basic event loop library for computer craft
+--
+-- Example usage:
+--
+-- local disposeRedstoneEvent = events.register("redstone", function()
+--   print("Redstone signal received!")
+-- end)
+--
+-- events.register("key_up", function(k)
+--   if k == keys.q then
+--     disposeRedstoneEvent()
+--     return events.STOP
+--   end
+-- end)
+--
+-- events.runLoop();
 local handlersCounter = 0
 local allHandlers = {}
 
 local runningHandlers = nil
 local unregisterQueue = {}
+
+local function noop()
+end
 
 local function resetAll()
   handlersCounter = 0;
@@ -82,13 +101,15 @@ function stopLoop()
   os.queueEvent(END_OF_LOOP)
 end
 
-function runLoop()
+function runLoop(onStopCallback)
+  onStopCallback = onStopCallback or noop
+
   if handlersCounter == 0 then
     error("libevents error: try to run event loop without handlers (use 'register' before 'runLoop')")
   end
 
   while true do
-    local packed = table.pack(os.pullEvent())
+    local packed = table.pack(os.pullEventRaw())
     local eventName = table.remove(packed, 1)
     local handlers = allHandlers[eventName]
 
@@ -104,7 +125,8 @@ function runLoop()
       flushUnregisterQueue()
     end
 
-    if eventName == END_OF_LOOP then
+    if eventName == END_OF_LOOP or eventName == 'terminate' then
+      onStopCallback()
       resetAll()
       break
     end
