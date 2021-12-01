@@ -10,7 +10,6 @@ shell.setDir('/')
 
 fs.makeDir('/apis');
 fs.makeDir('/daemons');
-fs.makeDir('/lib');
 fs.makeDir('/bin');
 
 for k, filePath in pairs(LIST_FILES) do
