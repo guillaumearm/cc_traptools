@@ -1,6 +1,5 @@
 local LIST_FILES = {'startup.lua', 'apis/bapil', 'apis/eventloop', 'apis/colorutils', 'apis/rsw', 'apis/rsr',
-                    'apis/rsclient', 'apis/logger', 'apis/daemon', 'bin/cat.lua', 'bin/daemon.lua',
-                    'daemons/redserver.disabled'}
+                    'apis/rsclient', 'apis/logger', 'apis/daemon', 'bin/cat.lua', 'bin/daemon.lua'}
 
 local REPO_PREFIX = 'https://raw.githubusercontent.com/guillaumearm/cc_traptools/master/'
 
@@ -17,8 +16,11 @@ for k, filePath in pairs(LIST_FILES) do
   shell.execute('wget', REPO_PREFIX .. filePath, filePath)
 end
 
-print()
+fs.delete('daemons/redserver')
+fs.delete('daemons/redserver.disabled')
+shell.execute('wget', REPO_PREFIX .. 'daemons/redserver.disabled', 'daemons/redserver.disabled')
 
+print()
 print('=> Execute startup.lua')
 shell.execute('/startup.lua')
 
