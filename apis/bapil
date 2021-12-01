@@ -13,21 +13,18 @@
     reloadAPI for that. It furthermore loads all APIs via a protected call,
     which means you don't have to reboot the machine if an API fails loading.
     Lastly, unloadAPI also resolves paths.
-]]
-
--------------------------------------------------------------------------------
+]] -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 -- API Loader API                                                            --
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
-
 -- If this API was loaded before, reuse it to avoid loosing our state.
 if bapil then
-    local env = getfenv()
-    for k, v in pairs(bapil) do
-        env[k] = v
-    end
-    return
+  local env = getfenv()
+  for k, v in pairs(bapil) do
+    env[k] = v
+  end
+  return
 end
 
 -- Namespace forward declarations.
@@ -58,105 +55,109 @@ version = "1.0"
     @return true on success; (false, reason) on failure.
 ]]
 function loadAPI(path, timeout)
-    -- Resolve the path and get the API's name from the file name.
-    path = resolveAPI(path)
-    local name = fs.getName(path):gsub("%.lua$", "")
+  -- Resolve the path and get the API's name from the file name.
+  path = resolveAPI(path)
+  local name = fs.getName(path):gsub("%.lua$", "")
 
-    -- Check if the API is already loaded.
-    if _G[name] then
-        if type(_G[name]) == "table" then
-            return true
-        else
-            return false, "trying to override global variable"
-        end
+  -- Check if the API is already loaded.
+  if _G[name] then
+    if type(_G[name]) == "table" then
+      return true
+    else
+      return false, "trying to override global variable"
+    end
+  end
+
+  -- Thread guard. Wait if another coroutine already is loading this API.
+  timeout = timeout or math.huge
+  while private.loadingAPIs[name] and timeout > 0 do
+    timeout = timeout - 0.1
+    os.sleep(0.1)
+  end
+  if private.loadingAPIs[name] then
+    return false, "timeout"
+  end
+
+  -- If the API was loaded successfully by the other coroutine we are done.
+  -- Otherwise we can't be sure the other coroutine didn't just unload the
+  -- API again, so we'll have to try loading it again.
+  if _G[name] then
+    return true
+  end
+
+  -- Begin loading the API. Aquire lock.
+  private.loadingAPIs[name] = true
+
+  -- Wrapping it in a function for more linear indentation.
+  local result, reason
+  (function()
+    -- Try to load the file.
+    result, reason = loadfile(path)
+    if not result then
+      return
     end
 
-    -- Thread guard. Wait if another coroutine already is loading this API.
-    timeout = timeout or math.huge
-    while private.loadingAPIs[name] and timeout > 0 do
-        timeout = timeout - 0.1
-        os.sleep(0.1)
-    end
-    if private.loadingAPIs[name] then
-        return false, "timeout"
-    end
-
-    -- If the API was loaded successfully by the other coroutine we are done.
-    -- Otherwise we can't be sure the other coroutine didn't just unload the
-    -- API again, so we'll have to try loading it again.
-    if _G[name] then
-        return true
+    -- Try to execute the script. This can yield.
+    local environment = {
+      __bapil__ = true
+    }
+    local retval
+    setfenv(result, setmetatable(environment, {
+      __index = _G
+    }))
+    result, retval = pcall(result)
+    if not result then
+      reason = retval
+      return
     end
 
-    -- Begin loading the API. Aquire lock.
-    private.loadingAPIs[name] = true
+    local api
+    if retval == nil then
+      -- Great! Set the environment as the API's entry. Since os.loadAPI
+      -- copies all entries to a new table we do this here, too, though I
+      -- don't really see the point (but this ignores the tables metatable,
+      -- so we'd get different behavior if we skip this, which would be bad).
+      api = {}
+      for k, v in pairs(environment) do
+        api[k] = v
+      end
 
-    -- Wrapping it in a function for more linear indentation.
-    local result, reason
-    (function()
-        -- Try to load the file.
-        result, reason = loadfile(path)
-        if not result then
-            return
+    elseif type(retval) == "table" then
+      -- If the script returns table, use it as api.
+      api = retval
+
+    elseif type(retval) == "function" then
+      -- As api can be only table, let's wrap returned function to table
+      -- with metatable.
+      api = {}
+      api[name] = retval
+      setmetatable(api, {
+        __call = function(_, ...)
+          return retval(...)
         end
+      })
 
-        -- Try to execute the script. This can yield.
-        local environment = {__bapil__ = true}
-        local retval
-        setfenv(result, setmetatable(environment, {__index = _G}))
-        result, retval = pcall(result)
-        if not result then
-            reason = retval
-            return
-        end
+    else
+      result = false
+      reason = "attempt use " .. type(retval) .. " as api"
+      return
+    end
 
-        local api
-        if retval == nil then
-            -- Great! Set the environment as the API's entry. Since os.loadAPI
-            -- copies all entries to a new table we do this here, too, though I
-            -- don't really see the point (but this ignores the tables metatable,
-            -- so we'd get different behavior if we skip this, which would be bad).
-            api = {}
-            for k, v in pairs(environment) do
-                api[k] = v
-            end
+    _G[name] = api
 
-        elseif type(retval) == "table" then
-            -- If the script returns table, use it as api.
-            api = retval
+    if type(api) == "table" then
+      -- If api has __load__ function, call it with the global environment.
+      local __load__ = api.__load__
+      if __load__ then
+        setfenv(__load__, _G)
+        __load__()
+      end
+    end
+  end)()
 
-        elseif type(retval) == "function" then
-            -- As api can be only table, let's wrap returned function to table
-            -- with metatable.
-            api = {}
-            api[name] = retval
-            setmetatable(api, {
-                __call = function (_, ...)
-                    return retval(...)
-                end
-            })
-
-        else
-            result = false
-            reason = "attempt use " .. type(retval) .. " as api"
-            return
-        end
-
-        _G[name] = api
-
-        if type(api) == "table" then
-            -- If api has __load__ function, call it with the global environment.
-            local __load__ = api.__load__
-            if __load__ then
-                setfenv(__load__, _G)
-                __load__()
-            end
-        end
-    end)()
-
-    -- Done loading the API. Release lock.
-    private.loadingAPIs[name] = false
-    return result, reason
+  -- Done loading the API. Release lock.
+  private.loadingAPIs[name] = false
+  return result, reason
 end
 
 --[[
@@ -165,19 +166,19 @@ end
     @param the path to or name of the API to unload.
 ]]
 function unloadAPI(path)
-    local name = fs.getName(path)
-    local api = _G[name]
+  local name = fs.getName(path)
+  local api = _G[name]
 
-    if api and type(api) == "table" then
-        -- If api has __unload__ function, call it with the global environment.
-        local __unload__ = api.__unload__
-        if __unload__ then
-            setfenv(__unload__, _G)
-            __unload__()
-        end
+  if api and type(api) == "table" then
+    -- If api has __unload__ function, call it with the global environment.
+    local __unload__ = api.__unload__
+    if __unload__ then
+      setfenv(__unload__, _G)
+      __unload__()
     end
+  end
 
-    os.unloadAPI(name)
+  os.unloadAPI(name)
 end
 
 --[[
@@ -192,8 +193,8 @@ end
     @return true on success; (false, reason) on failure.
 ]]
 function reloadAPI(path, timeout)
-    unloadAPI(path)
-    return loadAPI(path, timeout)
+  unloadAPI(path)
+  return loadAPI(path, timeout)
 end
 
 --[[
@@ -205,7 +206,7 @@ end
     @return the current path environment.
 ]]
 function path()
-    return private.path
+  return private.path
 end
 
 --[[
@@ -215,7 +216,7 @@ end
     @see bapil.path()
 ]]
 function setPath(path)
-    private.path = path
+  private.path = path
 end
 
 --[[
@@ -228,16 +229,16 @@ end
     @return the resolved path, which may be the same as the specified one.
 ]]
 function resolveAPI(name)
-    if string.sub(name, 1, 1) == '/' or string.sub(name, 1, 1) == '\\' then
-        return name
-    end
-    for path in string.gmatch(private.path, "[^:]+") do
-        path = fs.combine(path, name)
-        if fs.exists(path) and not fs.isDir(path) then
-            return path
-        end
-    end
+  if string.sub(name, 1, 1) == '/' or string.sub(name, 1, 1) == '\\' then
     return name
+  end
+  for path in string.gmatch(private.path, "[^:]+") do
+    path = fs.combine(path, name)
+    if fs.exists(path) and not fs.isDir(path) then
+      return path
+    end
+  end
+  return name
 end
 
 --[[
@@ -246,20 +247,24 @@ end
     @param restore whether to restore the original OS API functions.
 ]]
 function hijackOSAPI(restore)
-    if restore then
-        if not os._bapil then return end
-        os.loadAPI   = os._bapil.loadAPI
-        os.unloadAPI = os._bapil.unloadAPI
-        os._bapil = nil
-    else
-        if os._bapil then return end
-        os._bapil = {
-            loadAPI   = os.loadAPI,
-            unloadAPI = os.unloadAPI
-        }
-        os.loadAPI   = loadAPI
-        os.unloadAPI = unloadAPI
+  if restore then
+    if not os._bapil then
+      return
     end
+    os.loadAPI = os._bapil.loadAPI
+    os.unloadAPI = os._bapil.unloadAPI
+    os._bapil = nil
+  else
+    if os._bapil then
+      return
+    end
+    os._bapil = {
+      loadAPI = os.loadAPI,
+      unloadAPI = os.unloadAPI
+    }
+    os.loadAPI = loadAPI
+    os.unloadAPI = unloadAPI
+  end
 end
 
 -------------------------------------------------------------------------------
