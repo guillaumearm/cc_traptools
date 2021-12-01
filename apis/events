@@ -110,19 +110,3 @@ function runLoop()
     end
   end
 end
-
-function test(k)
-  if k == keys.q then
-    print('Q pressed!');
-    return STOP
-  end
-end
-
-local dispose = register('key_up', test)
-
-register('key_up', function(k)
-  if k == keys.k then
-    dispose()
-    return STOP
-  end
-end)
