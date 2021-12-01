@@ -17,4 +17,4 @@ end
 print()
 
 print('=> Execute startup.lua')
-shell.execute('/startup.lua')
+shell.execute('startup.lua')
