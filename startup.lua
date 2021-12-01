@@ -1,4 +1,4 @@
-local APIS_TO_LOAD = {'apis/events', 'apis/colorutils', 'apis/rsw', 'apis/rsr', 'apis/rsclient'}
+local APIS_TO_LOAD = {'apis/eventloop', 'apis/colorutils', 'apis/rsw', 'apis/rsr', 'apis/rsclient'}
 
 -- 0. add /bin in path
 shell.setPath(shell.path(0) .. ":/bin")
@@ -20,3 +20,9 @@ end
 assert(os.loadAPI("apis/daemon"))
 daemon.install()
 
+-- 5. shell autocompletions
+local completion = require "cc.shell.completion"
+
+-- completion: cat.lua
+local cat_complete = completion.build({completion.file})
+shell.setCompletionFunction("bin/cat.lua", cat_complete)

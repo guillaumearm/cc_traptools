@@ -1,0 +1,145 @@
+-- Basic event loop library for computer craft
+--
+-- Example usage:
+--
+-- local disposeRedstoneEvent = events.register("redstone", function()
+--   print("Redstone signal received!")
+-- end)
+--
+-- events.register("key_up", function(k)
+--   if k == keys.q then
+--     disposeRedstoneEvent()
+--     return events.STOP
+--   end
+-- end)
+--
+-- events.runLoop();
+local next_eventloop_id = 1;
+
+function new()
+  local api = {}
+
+  local eventloop_id = next_eventloop_id
+  next_eventloop_id = next_eventloop_id + 1
+
+  local handlersCounter = 0
+  local allHandlers = {}
+
+  local runningHandlers = nil
+  local unregisterQueue = {}
+
+  local function noop()
+  end
+
+  local function resetAll()
+    handlersCounter = 0;
+    allHandlers = {};
+    runningHandlers = nil;
+    unregisterQueue = {}
+  end
+
+  local function flushUnregisterQueue()
+    if #unregisterQueue == 0 then
+      return
+    end
+
+    for _, f in pairs(unregisterQueue) do
+      f()
+    end
+
+    unregisterQueue = {}
+  end
+
+  local END_OF_LOOP = '@libevents/END_OF_LOOP/' .. eventloop_id
+
+  STOP = 'STOP'
+
+  function api.unregister(eventName, handler)
+    assert(type(eventName) == 'string', 'bad argument #1 (string expected)')
+    assert(type(handler) == 'function', 'bad argument #2 (function expected)')
+
+    local function removeHandler()
+      local handlers = allHandlers[eventName]
+
+      if not handlers then
+        error("libevents error: no handler registered for the '" .. eventName .. "' event")
+      end
+
+      if handlers[handler] then
+        handlers[handler] = nil
+        handlersCounter = handlersCounter - 1;
+        if handlersCounter == 0 then
+          os.queueEvent(END_OF_LOOP)
+        end
+      end
+    end
+
+    if runningHandlers then
+      table.insert(unregisterQueue, function()
+        return removeHandler()
+      end)
+      return
+    end
+
+    return removeHandler()
+  end
+
+  function api.register(eventName, handler)
+    assert(type(eventName) == 'string', 'bad argument #1 (string expected)')
+    assert(type(handler) == 'function', 'bad argument #2 (function expected)')
+
+    if not allHandlers[eventName] then
+      allHandlers[eventName] = {}
+    end
+
+    local handlers = allHandlers[eventName]
+    if handlers[handler] then
+      error("libevents error: handler already registered for event '" .. eventName .. "'")
+    end
+
+    handlers[handler] = handler;
+    handlersCounter = handlersCounter + 1;
+
+    return function()
+      unregister(eventName, handler)
+    end
+  end
+
+  function api.stopLoop()
+    os.queueEvent(END_OF_LOOP)
+  end
+
+  function api.runLoop(onStopCallback)
+    onStopCallback = onStopCallback or noop
+
+    if handlersCounter == 0 then
+      error("libevents error: try to run event loop without handlers (use 'register' before 'runLoop')")
+    end
+
+    while true do
+      local packed = table.pack(os.pullEventRaw())
+      local eventName = table.remove(packed, 1)
+      local handlers = allHandlers[eventName]
+
+      if handlers then
+        runningHandlers = eventName
+        for _, handler in pairs(handlers) do
+          local result_handler = handler(table.unpack(packed))
+          if result_handler then
+            unregister(eventName, handler)
+          end
+        end
+        runningHandlers = nil
+        flushUnregisterQueue()
+      end
+
+      if eventName == END_OF_LOOP or eventName == 'terminate' then
+        onStopCallback()
+        resetAll()
+        break
+      end
+    end
+  end
+
+  return api
+end

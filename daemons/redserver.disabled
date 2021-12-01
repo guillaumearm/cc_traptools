@@ -4,6 +4,8 @@ local OUTPUT_SIDE = "right"
 local SERVER_COMMAND_CHANNEL = 140 -- 141 is usually used for output response feedback
 local INPUT_RESPONSE_FEEDBACK_CHANNEL = 142
 
+local events = eventloop.new()
+
 local rsw = rsw.new(OUTPUT_SIDE);
 local rsr = rsr.new(INPUT_SIDE);
 
@@ -26,7 +28,7 @@ end
 local isOn = checkMessage('on');
 local isOff = checkMessage('off');
 
-local disposeModem = events.register("modem_message", function(modemSide, channel, replyChannel, message, distance)
+events.register("modem_message", function(modemSide, channel, replyChannel, message, distance)
   if channel == SERVER_COMMAND_CHANNEL and isValidMessage(message) then
     local result_colors = {}
     local oldMask = rsw.mask();
@@ -61,7 +63,7 @@ local disposeModem = events.register("modem_message", function(modemSide, channe
   end
 end)
 
-local disposeRedstone = rsr.register(function(colormask)
+rsr.register(events, function(colormask)
   -- TODO: print(getColors_difference(oldMask, newMask))
   local channel = INPUT_RESPONSE_FEEDBACK_CHANNEL
   modem.transmit(channel, channel, colormask)
@@ -84,8 +86,6 @@ print()
 print("======> Redstone server enabled!")
 print()
 events.runLoop()
-
--- TODO onStop ?
 
 print("======> Redstone server disabled!")
 modem.close(SERVER_COMMAND_CHANNEL)

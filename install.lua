@@ -1,4 +1,4 @@
-local LIST_FILES = {'startup.lua', 'apis/bapil', 'apis/events', 'apis/colorutils', 'apis/rsw', 'apis/rsr',
+local LIST_FILES = {'startup.lua', 'apis/bapil', 'apis/eventloop', 'apis/colorutils', 'apis/rsw', 'apis/rsr',
                     'apis/rsclient', 'apis/logger', 'apis/daemon', 'bin/cat.lua', 'bin/daemon.lua',
                     'daemons/redserver.disabled'}
 
