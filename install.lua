@@ -1,6 +1,8 @@
 local LIST_FILES = {'startup.lua', 'apis/bapil', 'apis/stacktrace', 'apis/eventloop', 'apis/colorutils', 'apis/rsw',
                     'apis/rsr', 'apis/rsclient', 'apis/net', 'apis/logger', 'apis/daemon', 'bin/cat.lua',
-                    'bin/daemon.lua'}
+                    'bin/daemon.lua'};
+
+local DAEMON_LIST = {'redserver', 'secretdoor'}
 
 local REPO_PREFIX = 'https://raw.githubusercontent.com/guillaumearm/cc_traptools/master/'
 
@@ -12,14 +14,17 @@ fs.makeDir('/apis');
 fs.makeDir('/daemons');
 fs.makeDir('/bin');
 
-for k, filePath in pairs(LIST_FILES) do
+for _, filePath in pairs(LIST_FILES) do
   fs.delete(filePath)
   shell.execute('wget', REPO_PREFIX .. filePath, filePath)
 end
 
-fs.delete('daemons/redserver')
-fs.delete('daemons/redserver.disabled')
-shell.execute('wget', REPO_PREFIX .. 'daemons/redserver.disabled', 'daemons/redserver.disabled')
+for _, daemonName in pairs(DAEMON_LIST) do
+  fs.delete('daemons' .. daemonName)
+  fs.delete('daemons/' .. daemonName .. '.disabled')
+  shell.execute('wget', REPO_PREFIX .. 'daemons/' .. daemonName .. '.disabled',
+    'daemons/redserver' .. daemonName .. '.disabled')
+end
 
 print()
 print('=> Execute startup.lua')
