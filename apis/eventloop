@@ -18,6 +18,8 @@
 -- events.runLoop();
 local next_eventloop_id = 1;
 
+STOP = '@libeventloop/STOP_HANDLER_SUBSCRIPTION';
+
 function new()
   local api = {}
 
@@ -124,7 +126,7 @@ function new()
 
   local END_OF_LOOP = '@libeventloop/END_OF_LOOP/' .. eventloop_id
 
-  api.STOP = 'STOP'
+  api.STOP = STOP
 
   -- stopLoop
   function api.stopLoop()
@@ -234,7 +236,7 @@ function new()
           runningHandlers = eventName
           for _, handler in pairs(handlers) do
             local result_handler = handler(table.unpack(packed))
-            if result_handler then
+            if result_handler == api.STOP then
               api.unregister(eventName, handler)
             end
           end

@@ -10,6 +10,104 @@ local function getModem()
   return modem
 end
 
+-- el = eventloop instance
+function create_server(el)
+  el = el or events
+
+  if not el or not el.register then
+    error('network create_server error: invalid given eventloop instance')
+  end
+
+  local modem = getModem()
+
+  local disposeFns = {};
+  local registeredChanOldState = {}
+
+  local api = {}
+
+  local function safeClose(chan)
+    local state = registeredChanOldState[chan];
+    if state and state.refcount > 0 then
+      state.refcount = state.refcount - 1
+
+      if state.refcount <= 0 and not state.isOpen then
+        registeredChanOldState[chan] = nil
+        modem.close(chan)
+      end
+    end
+  end
+
+  function api.start()
+    return el.startLoop()
+  end
+
+  function api.listen(channel, handler)
+    assert(type(channel) == 'number', 'bad argument #1 (number expected)');
+    assert(type(handler) == 'function', 'bad argument #2 (function expected)');
+
+    local state = registeredChanOldState[channel]
+    if not state then
+      state = {
+        refcount = 1,
+        isOpen = modem.isOpen(channel)
+      }
+      modem.open(channel)
+      registeredChanOldState[channel] = state
+    else
+      state.refcount = state.refcount + 1
+    end
+
+    el.onStop(function()
+      safeClose(channel)
+    end)
+
+    local dispose = el.register('modem_message', function(_side, chan, replyChan, payload, distance)
+      if chan == channel then
+        local result_handler = handler(replyChan, payload, distance)
+
+        if result_handler == el.STOP then
+          safeClose(channel)
+        end
+
+        return result_handler
+      end
+    end)
+
+    local function finalDispose()
+      local dispose_result = dispose();
+      safeClose(channel);
+      return dispose_result;
+    end
+
+    table.insert(disposeFns, finalDispose);
+    return finalDispose;
+  end
+
+  function api.stop()
+    -- 1. exec all dispose fns
+    for _, d in pairs(disposeFns) do
+      d();
+    end
+
+    -- 2. close all necessary channels
+    for chan, _ in pairs(registeredChanOldState) do
+      local state = registeredChanOldState[chan];
+      if state then
+        if not state.isOpen then
+          modem.close(chan)
+        end
+        registeredChanOldState[chan] = nil;
+      end
+    end
+
+    -- 3. reset state
+    disposeFns = {}
+    registeredChanOldState = {}
+  end
+
+  return api
+end
+
 function send(channel, replyChannel, payload)
   local modem = getModem()
   return modem.transmit(channel, replyChannel, payload)
@@ -53,3 +151,5 @@ function request(channel, replyChannel, payload)
 
   return result;
 end
+
+STOP = eventloop.STOP
