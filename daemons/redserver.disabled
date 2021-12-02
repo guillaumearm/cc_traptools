@@ -8,12 +8,7 @@ local events = eventloop.new()
 
 local rsw = rsw.new(OUTPUT_SIDE);
 local rsr = rsr.new(INPUT_SIDE);
-
-local modem = peripheral.find("modem")
-
-if not modem then
-  error("rsserver error: no modem found!")
-end
+local server = net.create_server(events);
 
 local function isValidMessage(msg)
   return type(msg) == 'table' and type(msg.type) == 'string'
@@ -28,29 +23,29 @@ end
 local isOn = checkMessage('on');
 local isOff = checkMessage('off');
 
-events.register("modem_message", function(modemSide, channel, replyChannel, message, distance)
-  if channel == SERVER_COMMAND_CHANNEL and isValidMessage(message) then
+server.listen(SERVER_COMMAND_CHANNEL, function(replyChannel, message)
+  if isValidMessage(message) then
     local result_colors = {}
     local oldMask = rsw.mask();
 
     if message.type == 'reset' then
       if rsw.reset() then
-        modem.transmit(replyChannel, replyChannel, rsw.mask())
+        net.send(replyChannel, replyChannel, rsw.mask())
       end
       result_colors = colorutils.getColors(colors.subtract(oldMask, rsw.mask()));
     elseif message.type == 'getstate' then
-      modem.transmit(replyChannel, replyChannel, rsw.mask())
+      net.send(replyChannel, replyChannel, rsw.mask())
     elseif message.type == 'getstate_input' then
-      modem.transmit(replyChannel, replyChannel, rsr.mask())
+      net.send(replyChannel, replyChannel, rsr.mask())
     elseif isOn(message) then
       if rsw.set(message.payload, true) then
-        modem.transmit(replyChannel, replyChannel, rsw.mask());
+        net.send(replyChannel, replyChannel, rsw.mask());
 
         result_colors = colorutils.getColors(colors.subtract(rsw.mask(), oldMask));
       end
     elseif isOff(message) then
       if rsw.set(message.payload, false) then
-        modem.transmit(replyChannel, replyChannel, rsw.mask());
+        net.send(replyChannel, replyChannel, rsw.mask());
 
         result_colors = colorutils.getColors(colors.subtract(oldMask, rsw.mask()));
       end
@@ -64,12 +59,10 @@ events.register("modem_message", function(modemSide, channel, replyChannel, mess
 end)
 
 rsr.register(events, function(colormask)
-  -- TODO: print(getColors_difference(oldMask, newMask))
+  -- TODO: print(getColorsDifference(oldMask, newMask))
   local channel = INPUT_RESPONSE_FEEDBACK_CHANNEL
-  modem.transmit(channel, channel, colormask)
+  net.send(channel, channel, colormask)
 end)
-
-modem.open(SERVER_COMMAND_CHANNEL)
 
 print('===== INPUTS ======')
 for k, v in pairs(colorutils.getColors(rsr.mask())) do
@@ -84,8 +77,5 @@ end
 print()
 
 print("======> Redstone server enabled!")
-print()
 events.runLoop()
-
 print("======> Redstone server disabled!")
-modem.close(SERVER_COMMAND_CHANNEL)
