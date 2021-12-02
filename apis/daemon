@@ -712,6 +712,11 @@ function private.run(name, thread, event, ...)
   return coroutine.status(thread) ~= "dead", success, result
 end
 
+function private.logPrintError(...)
+  local log = getLogger('daemon');
+  log:err(nil, ...)
+end
+
 --[[
     Like write() but writes to the logfile.
 
