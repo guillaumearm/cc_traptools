@@ -1,5 +1,5 @@
 local EXPECTED_PASSWORD = {'white', 'orange', 'magenta', 'lightBlue'}
-local SECRET_DOOR_OUTPUT_COLOR = colors.orange;
+local SECRET_DOOR_OUTPUT_COLOR = colors.white;
 
 local TIMEOUT = 10
 local AUTOCLOSE_ENABLED = true;
