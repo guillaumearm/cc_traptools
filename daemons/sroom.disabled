@@ -33,7 +33,7 @@ local function buttonPressed(colorname)
       disposeTimeout = noop;
     end
 
-    if colorname == expected[cursor] then
+    if colorname == EXPECTED_PASSWORD[cursor] then
       table.insert(statePassword, colorname);
       print("'" .. colorname .. "' pressed")
       disposeTimeout();
