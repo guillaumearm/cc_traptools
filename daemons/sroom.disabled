@@ -17,6 +17,7 @@ local el = eventloop.create();
 local rsc = rsclient.create(el);
 
 local statePassword = {};
+local disposeTimeout = noop;
 
 local function buttonPressed(colorname)
   return function(enabled)
@@ -24,7 +25,6 @@ local function buttonPressed(colorname)
       return
     end
 
-    local disposeTimeout = noop;
     local cursor = #statePassword + 1;
 
     local function resetStatePassword()
@@ -38,7 +38,7 @@ local function buttonPressed(colorname)
       print("'" .. colorname .. "' pressed")
       disposeTimeout();
       disposeTimeout = el.setTimeout(function()
-        print('password timeout')
+        print("password timeout for '" .. colorname .. "'")
         statePassword = {}
       end, TIMEOUT)
     else
