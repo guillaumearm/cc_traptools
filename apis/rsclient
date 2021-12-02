@@ -2,10 +2,20 @@ local SERVER_COMMAND_CHANNEL = 140;
 local OUTPUT_RESPONSE_FEEDBACK_CHANNEL = 141;
 local INPUT_RESPONSE_FEEDBACK_CHANNEL = 142;
 
+local NETWORK_TIMEOUT = 2; -- in seconds
+
+local function getModem()
+  local modem = peripheral.find("modem");
+
+  if not modem then
+    error("librsclient error: no modem found")
+  end
+end
+
 -- example:
 -- rsclient.write(colors.red + colors.blue, true)
 function write(color, colorstate)
-  local modem = peripheral.find("modem");
+  local model = getModem()
 
   if type(color) ~= "number" then
     error("librsclient error: invalid color (number expected)")
@@ -29,19 +39,55 @@ function write(color, colorstate)
 end
 
 function reset()
-  local modem = peripheral.find("modem");
+  local model = getModem()
 
   modem.transmit(SERVER_COMMAND_CHANNEL, OUTPUT_RESPONSE_FEEDBACK_CHANNEL, {
     type = 'reset'
   });
 end
 
-function read_input_state()
-  -- 1. transmit getstate_input
-  -- 2. wait for response on chan 142 or timeout (2s)
+function readInputState()
+  local modem = peripheral.find("modem");
+  local result = nil;
+
+  local e = eventloop.new()
+
+  local disposeTimeout = function()
+  end;
+
+  local disposeMessage = e.register("modem_message", function(_side, chan, _replyChan, message)
+    if chan == INPUT_RESPONSE_FEEDBACK_CHANNEL then
+      result = message
+      disposeTimeout();
+      return e.STOP;
+    end
+  end)
+
+  disposeTimeout = e.setTimeout(function()
+    disposeMessage()
+  end, NETWORK_TIMEOUT)
+
+  modem.transmit(SERVER_COMMAND_CHANNEL, INPUT_RESPONSE_FEEDBACK_CHANNEL, {
+    type = "getstate_input"
+  })
+
+  local isInitialResponsePortClosed = not modem.isOpen(INPUT_RESPONSE_FEEDBACK_CHANNEL);
+  modem.open(INPUT_RESPONSE_FEEDBACK_CHANNEL)
+
+  e.runLoop()
+
+  if isInitialResponsePortClosed then
+    modem.close(INPUT_RESPONSE_FEEDBACK_CHANNEL)
+  end
+
+  if not result then
+    error('librsclient error: unable to retrieve redstone input state')
+  end
+
+  return result;
 end
 
-function read_output_state()
+function readOutputState()
 end
 
-read = read_input_state
+read = readInputState
