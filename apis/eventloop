@@ -22,22 +22,51 @@ function new()
   local api = {}
 
   local runningLoop = false;
-  local eventloop_id = next_eventloop_id
-  next_eventloop_id = next_eventloop_id + 1
+  local eventloop_id = next_eventloop_id;
+  next_eventloop_id = next_eventloop_id + 1;
 
-  local handlersCounter = 0
-  local allHandlers = {}
+  local handlersCounter = 0;
+  local allHandlers = {};
 
-  local runningHandlers = nil
-  local unregisterQueue = {}
+  local runningHandlers = nil;
+  local unregisterQueue = {};
 
   -- used when setTimeout are registered when runningLoop is false
   local nextTimeoutFactoryId = 1;
-  local timeoutFactories = {}
+  local timeoutFactories = {};
 
   -- used at runtime
   local timeoutHandlersCounter = 0;
-  local timeoutHandlers = {}
+  local timeoutHandlers = {};
+
+  -- onStop handlers
+  local onStopHandlerCounter = 0;
+  local nextOnStopHandlerId = 1;
+  local onStopHandlers = {};
+
+  local function resetOnStopHandlers()
+    onStopHandlerCounter = 0;
+    nextOnStopHandlerId = 1;
+    onStopHandlers = {};
+  end
+
+  local function addOnStopHandler(h)
+    local id = nextOnStopHandlerId
+
+    nextOnStopHandlerId = nextOnStopHandlerId + 1;
+    onStopHandlerCounter = onStopHandlerCounter + 1;
+
+    onStopHandlers[id] = h;
+
+    return id
+  end
+
+  local function execOnStopHandlers()
+    for _, h in pairs(onStopHandlers) do
+      h()
+    end
+    resetOnStopHandlers()
+  end
 
   local function getHandlersCounter()
     return timeoutHandlersCounter + handlersCounter;
@@ -62,15 +91,12 @@ function new()
     timeoutFactories = {}
   end
 
-  local function noop()
-  end
-
   local function resetAll()
     runningLoop = false;
     handlersCounter = 0;
     allHandlers = {};
     runningHandlers = nil;
-    unregisterQueue = {}
+    unregisterQueue = {};
 
     resetFactories();
 
@@ -79,7 +105,9 @@ function new()
     end
 
     timeoutHandlersCounter = 0;
-    timeoutHandlers = {}
+    timeoutHandlers = {};
+
+    resetOnStopHandlers()
   end
 
   local function flushUnregisterQueue()
@@ -161,9 +189,7 @@ function new()
   end
 
   -- runLoop
-  function api.runLoop(onStopCallback)
-    onStopCallback = onStopCallback or noop
-
+  function api.runLoop()
     if runningLoop then
       error("libeventloop error: event loop is already ran")
     end
@@ -173,11 +199,16 @@ function new()
       insertTimeoutHandler(timerId, h)
     end
 
-    resetFactories()
+    resetFactories();
 
-    if getHandlersCounter() == 0 then
+    if getHandlersCounter() == 0 and onStopHandlerCounter == 0 then
       error(
         "libeventloop error: tried to run event loop without handlers (use 'register' and/or 'setTimeout' before 'runLoop')")
+    end
+
+    if getHandlersCounter() == 0 and onStopHandlerCounter > 0 then
+      execOnStopHandlers()
+      return
     end
 
     runningLoop = true;
@@ -212,12 +243,17 @@ function new()
         end
 
         if eventName == END_OF_LOOP or eventName == 'terminate' then
-          onStopCallback()
+          execOnStopHandlers()
           resetAll()
           break
         end
       end
     end
+  end
+
+  -- startLoop
+  function api.startLoop(...)
+    return api.runLoop(...)
   end
 
   -- setTimeout
@@ -264,5 +300,23 @@ function new()
     end
   end
 
+  -- onStop
+  function api.onStop(handler)
+    assert(type(handler) == 'function', 'bad argument #1 (function expected)')
+
+    local handlerId = addOnStopHandler(handler);
+
+    return function()
+      local h = onStopHandlers[handlerId];
+      if h then
+        h();
+        onStopHandlers[handlerId] = nil
+        onStopHandlerCounter = onStopHandlerCounter - 1;
+      end
+    end
+  end
+
   return api
 end
+
+create = new
