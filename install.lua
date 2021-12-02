@@ -1,5 +1,5 @@
 local LIST_FILES = {'startup.lua', 'apis/bapil', 'apis/eventloop', 'apis/colorutils', 'apis/rsw', 'apis/rsr',
-                    'apis/rsclient', 'apis/logger', 'apis/daemon', 'bin/cat.lua', 'bin/daemon.lua'}
+                    'apis/rsclient', 'apis/net', 'apis/logger', 'apis/daemon', 'bin/cat.lua', 'bin/daemon.lua'}
 
 local REPO_PREFIX = 'https://raw.githubusercontent.com/guillaumearm/cc_traptools/master/'
 

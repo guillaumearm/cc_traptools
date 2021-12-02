@@ -1,0 +1,55 @@
+local NETWORK_TIMEOUT = 2; -- in seconds
+
+local function getModem()
+  local modem = peripheral.find("modem");
+
+  if not modem then
+    error("network error: no modem found")
+  end
+
+  return modem
+end
+
+function send(channel, replyChannel, payload)
+  local modem = getModem()
+  return modem.transmit(channel, replyChannel, payload)
+end
+
+function request(channel, replyChannel, payload)
+  local modem = getModem();
+  local result = nil;
+
+  local e = eventloop.new()
+
+  local disposeTimeout = function()
+  end;
+
+  local disposeMessage = e.register("modem_message", function(_side, chan, _replyChan, message)
+    if chan == replyChannel then
+      result = message
+      disposeTimeout();
+      return e.STOP;
+    end
+  end)
+
+  disposeTimeout = e.setTimeout(function()
+    disposeMessage()
+  end, NETWORK_TIMEOUT)
+
+  local isInitialResponsePortClosed = not modem.isOpen(replyChannel);
+
+  modem.open(replyChannel)
+  modem.transmit(channel, replyChannel, payload)
+
+  e.runLoop()
+
+  if isInitialResponsePortClosed then
+    modem.close(replyChannel)
+  end
+
+  if not result then
+    error('network request error: unable to retrieve response from channel ' .. replyChannel)
+  end
+
+  return result;
+end

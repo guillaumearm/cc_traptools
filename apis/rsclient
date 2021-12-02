@@ -2,21 +2,9 @@ local SERVER_COMMAND_CHANNEL = 140;
 local OUTPUT_RESPONSE_FEEDBACK_CHANNEL = 141;
 local INPUT_RESPONSE_FEEDBACK_CHANNEL = 142;
 
-local NETWORK_TIMEOUT = 2; -- in seconds
-
-local function getModem()
-  local modem = peripheral.find("modem");
-
-  if not modem then
-    error("librsclient error: no modem found")
-  end
-end
-
 -- example:
 -- rsclient.write(colors.red + colors.blue, true)
 function write(color, colorstate)
-  local model = getModem()
-
   if type(color) ~= "number" then
     error("librsclient error: invalid color (number expected)")
   end
@@ -32,62 +20,26 @@ function write(color, colorstate)
     type = "off"
   end
 
-  modem.transmit(SERVER_COMMAND_CHANNEL, OUTPUT_RESPONSE_FEEDBACK_CHANNEL, {
+  net.send(SERVER_COMMAND_CHANNEL, OUTPUT_RESPONSE_FEEDBACK_CHANNEL, {
     type = type,
     payload = color
   })
 end
 
 function reset()
-  local model = getModem()
-
-  modem.transmit(SERVER_COMMAND_CHANNEL, OUTPUT_RESPONSE_FEEDBACK_CHANNEL, {
+  net.send(SERVER_COMMAND_CHANNEL, OUTPUT_RESPONSE_FEEDBACK_CHANNEL, {
     type = 'reset'
   });
 end
 
 function readInputState()
-  local modem = peripheral.find("modem");
-  local result = nil;
-
-  local e = eventloop.new()
-
-  local disposeTimeout = function()
-  end;
-
-  local disposeMessage = e.register("modem_message", function(_side, chan, _replyChan, message)
-    if chan == INPUT_RESPONSE_FEEDBACK_CHANNEL then
-      result = message
-      disposeTimeout();
-      return e.STOP;
-    end
-  end)
-
-  disposeTimeout = e.setTimeout(function()
-    disposeMessage()
-  end, NETWORK_TIMEOUT)
-
-  modem.transmit(SERVER_COMMAND_CHANNEL, INPUT_RESPONSE_FEEDBACK_CHANNEL, {
+  return net.request(SERVER_COMMAND_CHANNEL, INPUT_RESPONSE_FEEDBACK_CHANNEL, {
     type = "getstate_input"
   })
-
-  local isInitialResponsePortClosed = not modem.isOpen(INPUT_RESPONSE_FEEDBACK_CHANNEL);
-  modem.open(INPUT_RESPONSE_FEEDBACK_CHANNEL)
-
-  e.runLoop()
-
-  if isInitialResponsePortClosed then
-    modem.close(INPUT_RESPONSE_FEEDBACK_CHANNEL)
-  end
-
-  if not result then
-    error('librsclient error: unable to retrieve redstone input state')
-  end
-
-  return result;
 end
 
 function readOutputState()
+  return net.request(SERVER_COMMAND_CHANNEL, OUTPUT_RESPONSE_FEEDBACK_CHANNEL, {
+    type = "getstate"
+  })
 end
-
-read = readInputState
