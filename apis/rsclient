@@ -89,6 +89,7 @@ function create(el, serverCommandChan, outputResponseChan, inputResponseChan)
     local colormask = 0;
     local server = net.create_server(el);
 
+    -- TODO: refactor !
     local disposeListen = nil
     if redserver and redserver.rsw then
       disposeListen = redserver.rsw.listen(function(newColormask)
@@ -151,12 +152,23 @@ function create(el, serverCommandChan, outputResponseChan, inputResponseChan)
     local colormask = 0;
     local server = net.create_server(el);
 
-    local disposeListen = server.listen(inputResponseChan, function(_, newColormask)
-      if newColormask ~= colormask then
-        colormask = newColormask
-        return handler(newColormask)
-      end
-    end)
+    -- TODO: refactor !
+    local disposeListen = nil
+    if redserver and redserver.rsr then
+      disposeListen = redserver.rsr.register(el, function(newColormask)
+        if newColormask ~= colormask then
+          colormask = newColormask
+          return handler(newColormask)
+        end
+      end)
+    else
+      disposeListen = server.listen(inputResponseChan, function(_, newColormask)
+        if newColormask ~= colormask then
+          colormask = newColormask
+          return handler(newColormask)
+        end
+      end)
+    end
 
     el.onStart(function()
       -- warning: need a new eventloop instance here
