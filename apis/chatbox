@@ -1,0 +1,100 @@
+function create(el)
+  el = el or eventloop.create()
+
+  local api = {};
+  local private = {};
+
+  if not el or not el.register or not el.setTimeout then
+    error('invalid eventloop instance provided');
+  end
+
+  local chatbox = peripheral.find('chatBox');
+
+  if not chatbox then
+    error("no chatBox peripheral found");
+  end
+
+  local queueMessages = {};
+
+  function private.dequeueMessages()
+    local f = table.remove(queueMessages, 1);
+
+    if f then
+      f();
+      el.setTimeout(private.dequeueMessages, api.getCooldown() / 1000);
+    end
+  end
+
+  -- TODO: refactor `api.sendMessage`, `api.sendFormattedMessage` and `api.sendMessageToPlayer`
+
+  -- sendMessage
+  function api.sendMessage(message, prefix)
+    local sendFn = function()
+      return chatbox.sendMessage(message, prefix);
+    end
+
+    if #queueMessages > 0 then
+      table.insert(queueMessages, sendFn);
+    else
+      local result = sendFn();
+
+      if not result then
+        el.setTimeout(private.dequeueMessage, api.getCooldown() / 1000);
+      end
+    end
+  end
+
+  -- sendFormattedMessage
+  function api.sendFormattedMessage(payload, prefix)
+    local sendFn = function()
+      return chatbox.sendFormattedMessage(textutils.serializeJSON(payload), prefix);
+    end
+
+    if #queueMessages > 0 then
+      table.insert(queueMessages, sendFn);
+    else
+      local result = sendFn();
+
+      if not result then
+        el.setTimeout(private.dequeueMessage, api.getCooldown() / 1000);
+      end
+    end
+  end
+
+  -- sendMessageToPlayer
+  function api.sendMessageToPlayer(message, user, prefix)
+    local sendFn = function()
+      return chatbox.sendMessageToPlayer(message, user, prefix);
+    end
+
+    if #queueMessages > 0 then
+      table.insert(queueMessages, sendFn);
+    else
+      local result = sendFn();
+
+      if not result then
+        el.setTimeout(private.dequeueMessage, api.getCooldown() / 1000);
+      end
+    end
+  end
+
+  -- getCooldown (result in ms)
+  function api.getCooldown()
+    return chatbox.getOperationCooldown('chatMessage');
+  end
+
+  -- listen
+  function api.listen(handler)
+    return el.register('chat', handler);
+  end
+
+  -- start
+  function api.start()
+    return el.startLoop();
+  end
+
+  return api;
+end
+
+new = create
+

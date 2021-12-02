@@ -1,21 +1,14 @@
-local chat = peripheral.wrap('top')
+local chat = chatbox.create()
 
-if not chat or not chat.sendMessage then
-  error('shrug error: unable to find chatbox peripheral')
-end
-
-local el = eventloop.create()
-
-el.register('chat', function(login, message)
-  print(login, message)
+chat.listen(function(user, message)
   if string.find(message, '\\shrug') ~= nil then
-    chat.sendFormattedMessage(textutils.serializeJSON({
+    chat.sendFormattedMessage({
       text = '¯\\_(?)_/¯',
       color = "gray"
-    }), login)
+    }, user)
   end
 end)
 
 print('shrug daemon started!')
-el.startLoop()
+chat.start()
 print('shrug daemon stopped!')
