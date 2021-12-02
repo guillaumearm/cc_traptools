@@ -16,9 +16,6 @@ for _, apipath in ipairs(APIS_TO_LOAD) do
   assert(os.loadAPI(apipath))
 end
 
--- main event loop
-_G.events = eventloop.create()
-
 -- 4. load and install daemon api
 assert(os.loadAPI("apis/daemon"))
 daemon.install()
@@ -29,3 +26,6 @@ local completion = require "cc.shell.completion"
 -- completion: cat.lua
 local cat_complete = completion.build({completion.file})
 shell.setCompletionFunction("bin/cat.lua", cat_complete)
+
+-- global utils
+_G.events = eventloop.create(); -- main event loop

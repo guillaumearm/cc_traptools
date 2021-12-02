@@ -1,45 +1,152 @@
-local SERVER_COMMAND_CHANNEL = 140;
-local OUTPUT_RESPONSE_FEEDBACK_CHANNEL = 141;
-local INPUT_RESPONSE_FEEDBACK_CHANNEL = 142;
+local DEFAULT_SERVER_COMMAND_CHANNEL = 140;
+local DEFAULT_OUTPUT_RESPONSE_FEEDBACK_CHANNEL = 141;
+local DEFAULT_INPUT_RESPONSE_FEEDBACK_CHANNEL = 142;
 
--- example:
--- rsclient.write(colors.red + colors.blue, true)
-function write(color, colorstate)
-  if type(color) ~= "number" then
-    error("librsclient error: invalid color (number expected)")
-  end
-
-  if type(colorstate) ~= "boolean" then
-    error("librsclient error: invalid colorstate (boolean expected)")
-  end
-
-  local type;
-  if colorstate then
-    type = "on"
-  else
-    type = "off"
-  end
-
-  net.send(SERVER_COMMAND_CHANNEL, OUTPUT_RESPONSE_FEEDBACK_CHANNEL, {
-    type = type,
-    payload = color
-  })
+local function noop()
 end
 
-function reset()
-  net.send(SERVER_COMMAND_CHANNEL, OUTPUT_RESPONSE_FEEDBACK_CHANNEL, {
-    type = 'reset'
-  });
-end
+function create(el, serverCommandChan, outputResponseChan, inputResponseChan)
+  el = el or events
 
-function readInputState()
-  return net.request(SERVER_COMMAND_CHANNEL, INPUT_RESPONSE_FEEDBACK_CHANNEL, {
-    type = "getstate_input"
-  })
-end
+  if not el or not el.register then
+    error('rsclient create error: bad argument #1 (eventloop instance expected)')
+  end
 
-function readOutputState()
-  return net.request(SERVER_COMMAND_CHANNEL, OUTPUT_RESPONSE_FEEDBACK_CHANNEL, {
-    type = "getstate"
-  })
+  serverCommandChan = serverCommandChan or DEFAULT_SERVER_COMMAND_CHANNEL;
+  outputResponseChan = outputResponseChan or DEFAULT_OUTPUT_RESPONSE_FEEDBACK_CHANNEL;
+  inputResponseChan = inputResponseChan or DEFAULT_INPUT_RESPONSE_FEEDBACK_CHANNEL;
+
+  assert(type(serverCommandChan) == 'number', 'bad argument #2 (number expected)');
+  assert(type(outputResponseChan) == 'number', 'bad argument #3 (number expected)');
+  assert(type(inputResponseChan) == 'number', 'bad argument #4 (number expected)');
+
+  local api = {}
+
+  -- example:
+  -- rsclient.write(colors.red + colors.blue, true)
+  function api.writeOutput(color, colorstate)
+    if type(color) ~= "number" then
+      error("librsclient error: invalid color (number expected)")
+    end
+
+    if type(colorstate) ~= "boolean" then
+      error("librsclient error: invalid colorstate (boolean expected)")
+    end
+
+    local type;
+    if colorstate then
+      type = "on"
+    else
+      type = "off"
+    end
+
+    net.send(serverCommandChan, outputResponseChan, {
+      type = type,
+      payload = color
+    })
+  end
+
+  api.write = writeOutput
+
+  function api.resetOutput()
+    net.send(serverCommandChan, outputResponseChan, {
+      type = 'reset'
+    });
+  end
+
+  api.reset = api.resetOutput
+
+  function api.requestInputState()
+    return net.request(serverCommandChan, inputResponseChan, {
+      type = "getstate_input"
+    })
+  end
+
+  function api.requestOutputState()
+    return net.request(serverCommandChan, outputResponseChan, {
+      type = "getstate"
+    })
+  end
+
+  function api.listenOutputState(handler)
+    assert(type(handler) == 'function', 'bad argument #1 (function expected)');
+
+    local colormask = api.requestOutputState();
+    local result_handler = handler(colormask);
+
+    if result_handler == el.STOP then
+      return noop
+    end
+
+    local server = net.create_server(el);
+
+    return server.listen(outputResponseChan, function(_, newColormask)
+      if newColormask ~= colormask then
+        return handler(newColormask)
+      end
+    end)
+  end
+
+  function api.listenOutput(colorname, handler)
+    assert(type(colorname) == 'string', 'bad argument #1 (string expected)');
+    assert(type(handler) == 'function', 'bad argument #2 (function expected)');
+
+    local color = colors[colorname]
+
+    if not color then
+      error("rsclient listenOutput error: invalid color name '" .. colorname .. "'")
+    end
+
+    local colormask = 0;
+
+    return api.listenOutputState(function(newColormask)
+      if not colors.test(colormask, color) and colors.test(newColormask, color) then
+        return handler(true)
+      elseif colors.test(colormask, color) and not colors.test(newColormask, color) then
+        return handler(false)
+      end
+    end);
+  end
+
+  function api.listenInputState(handler)
+    assert(type(handler) == 'function', 'bad argument #1 (function expected)');
+
+    local colormask = api.requestInputState();
+    local result_handler = handler(colormask);
+
+    if result_handler == el.STOP then
+      return noop
+    end
+
+    local server = net.create_server(el);
+
+    return server.listen(inputResponseChan, function(_, newColormask)
+      if newColormask ~= colormask then
+        return handler(newColormask)
+      end
+    end)
+  end
+
+  function api.listenInput(colorname, handler)
+    assert(type(colorname) == 'string', 'bad argument #1 (string expected)');
+    assert(type(handler) == 'function', 'bad argument #2 (function expected)');
+
+    local color = colors[colorname]
+
+    if not color then
+      error("rsclient listenInput error: invalid color name '" .. colorname .. "'")
+    end
+
+    local colormask = 0;
+
+    return api.listenInputState(function(newColormask)
+      if not colors.test(colormask, color) and colors.test(newColormask, color) then
+        return handler(true)
+      elseif colors.test(colormask, color) and not colors.test(newColormask, color) then
+        return handler(false)
+      end
+    end);
+  end
+
+  return api
 end
