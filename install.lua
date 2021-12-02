@@ -20,7 +20,7 @@ for _, filePath in pairs(LIST_FILES) do
 end
 
 for _, daemonName in pairs(DAEMON_LIST) do
-  fs.delete('daemons' .. daemonName)
+  fs.delete('daemons/' .. daemonName)
   fs.delete('daemons/' .. daemonName .. '.disabled')
   shell.execute('wget', REPO_PREFIX .. 'daemons/' .. daemonName .. '.disabled', 'daemons/' .. daemonName .. '.disabled')
 end
