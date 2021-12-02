@@ -358,7 +358,7 @@ function stop(name)
   kill(name)
   if not success and result ~= "Terminated" then
     -- Some unexpected error while stopping the daemon, log it.
-    private.createLogPrintError(name)("Error stopping daemon '" .. name .. "': " .. result)
+    private.createLogPrintError(getLogger(name))("Error stopping daemon '" .. name .. "': " .. result)
   end
   return true
 end
@@ -521,7 +521,7 @@ function install()
         end
         if not success then
           -- The daemon stopped because of an error. Log it.
-          private.createLogPrintError(name)("Error executing daemon '" .. name .. "': " .. result)
+          private.createLogPrintError(getLogger(name))("Error executing daemon '" .. name .. "': " .. result)
         end
       end
 
@@ -560,7 +560,7 @@ function install()
   for _, name in ipairs(list) do
     local success, reason = start(name)
     if not success then
-      private.createLogPrintError(name)("Error starting daemon '" .. name .. "': " .. reason)
+      private.createLogPrintError(getLogger(name))("Error starting daemon '" .. name .. "': " .. reason)
     end
   end
 
