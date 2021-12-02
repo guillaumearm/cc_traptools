@@ -22,8 +22,7 @@ end
 for _, daemonName in pairs(DAEMON_LIST) do
   fs.delete('daemons' .. daemonName)
   fs.delete('daemons/' .. daemonName .. '.disabled')
-  shell.execute('wget', REPO_PREFIX .. 'daemons/' .. daemonName .. '.disabled',
-    'daemons/redserver' .. daemonName .. '.disabled')
+  shell.execute('wget', REPO_PREFIX .. 'daemons/' .. daemonName .. '.disabled', 'daemons/' .. daemonName .. '.disabled')
 end
 
 print()
