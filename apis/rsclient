@@ -71,20 +71,27 @@ function create(el, serverCommandChan, outputResponseChan, inputResponseChan)
   function api.listenOutputState(handler)
     assert(type(handler) == 'function', 'bad argument #1 (function expected)');
 
-    local colormask = api.requestOutputState();
-    local result_handler = handler(colormask);
-
-    if result_handler == el.STOP then
-      return noop
-    end
-
+    local colormask = 0;
     local server = net.create_server(el);
 
-    return server.listen(outputResponseChan, function(_, newColormask)
+    local disposeListen = server.listen(outputResponseChan, function(_, newColormask)
       if newColormask ~= colormask then
+        colormask = newColormask
         return handler(newColormask)
       end
     end)
+
+    el.onStart(function()
+      -- warning: need a new eventloop instance here
+      local rsc = create(eventloop.create(), serverCommandChan, outputResponseChan, inputResponseChan)
+      colormask = rsc.requestOutputState();
+
+      if handler(colormask) == el.STOP then
+        disposeListen();
+      end
+    end)
+
+    return disposeListen;
   end
 
   function api.listenOutput(colorname, handler)
@@ -100,31 +107,43 @@ function create(el, serverCommandChan, outputResponseChan, inputResponseChan)
     local colormask = 0;
 
     return api.listenOutputState(function(newColormask)
+      local result_handler = nil
+
       if not colors.test(colormask, color) and colors.test(newColormask, color) then
-        return handler(true)
+        result_handler = handler(true)
       elseif colors.test(colormask, color) and not colors.test(newColormask, color) then
-        return handler(false)
+        result_handler = handler(false)
       end
+      colormask = newColormask;
+
+      return result_handler;
     end);
   end
 
   function api.listenInputState(handler)
     assert(type(handler) == 'function', 'bad argument #1 (function expected)');
 
-    local colormask = api.requestInputState();
-    local result_handler = handler(colormask);
-
-    if result_handler == el.STOP then
-      return noop
-    end
-
+    local colormask = 0;
     local server = net.create_server(el);
 
-    return server.listen(inputResponseChan, function(_, newColormask)
+    local disposeListen = server.listen(inputResponseChan, function(_, newColormask)
       if newColormask ~= colormask then
+        colormask = newColormask
         return handler(newColormask)
       end
     end)
+
+    el.onStart(function()
+      -- warning: need a new eventloop instance here
+      local rsc = create(eventloop.create(), serverCommandChan, outputResponseChan, inputResponseChan)
+      colormask = rsc.requestOutputState();
+
+      if handler(colormask) == el.STOP then
+        disposeListen();
+      end
+    end)
+
+    return disposeListen
   end
 
   function api.listenInput(colorname, handler)
@@ -140,11 +159,16 @@ function create(el, serverCommandChan, outputResponseChan, inputResponseChan)
     local colormask = 0;
 
     return api.listenInputState(function(newColormask)
+      local result_handler = nil
+
       if not colors.test(colormask, color) and colors.test(newColormask, color) then
-        return handler(true)
+        result_handler = handler(true)
       elseif colors.test(colormask, color) and not colors.test(newColormask, color) then
-        return handler(false)
+        result_handler = handler(false)
       end
+      colormask = newColormask;
+
+      return result_handler;
     end);
   end
 
