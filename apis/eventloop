@@ -21,6 +21,7 @@ local next_eventloop_id = 1;
 function new()
   local api = {}
 
+  local runningLoop = false;
   local eventloop_id = next_eventloop_id
   next_eventloop_id = next_eventloop_id + 1
 
@@ -30,14 +31,55 @@ function new()
   local runningHandlers = nil
   local unregisterQueue = {}
 
+  -- used when setTimeout are registered when runningLoop is false
+  local nextTimeoutFactoryId = 1;
+  local timeoutFactories = {}
+
+  -- used at runtime
+  local timeoutHandlersCounter = 0;
+  local timeoutHandlers = {}
+
+  local function getHandlersCounter()
+    return timeoutHandlersCounter + handlersCounter;
+  end
+
+  local function insertTimeoutHandler(id, handler)
+    timeoutHandlers[id] = handler;
+    timeoutHandlersCounter = timeoutHandlersCounter + 1
+  end
+
+  local function removeTimeoutHandler(id)
+    timeoutHandlers[id] = nil;
+    timeoutHandlersCounter = timeoutHandlersCounter - 1
+
+    if getHandlersCounter() == 0 then
+      api.stopLoop();
+    end
+  end
+
+  local function resetFactories()
+    nextTimeoutFactoryId = 1;
+    timeoutFactories = {}
+  end
+
   local function noop()
   end
 
   local function resetAll()
+    runningLoop = false;
     handlersCounter = 0;
     allHandlers = {};
     runningHandlers = nil;
     unregisterQueue = {}
+
+    resetFactories();
+
+    for k, _ in pairs(timeoutHandlers) do
+      os.cancelTimer(k);
+    end
+
+    timeoutHandlersCounter = 0;
+    timeoutHandlers = {}
   end
 
   local function flushUnregisterQueue()
@@ -52,9 +94,18 @@ function new()
     unregisterQueue = {}
   end
 
-  local END_OF_LOOP = '@libevents/END_OF_LOOP/' .. eventloop_id
+  local END_OF_LOOP = '@libeventloop/END_OF_LOOP/' .. eventloop_id
 
   api.STOP = 'STOP'
+
+  -- stopLoop
+  function api.stopLoop()
+    if runningLoop then
+      os.queueEvent(END_OF_LOOP)
+    else
+      error("libeventloop error: loop is already stopped")
+    end
+  end
 
   -- unregister
   function api.unregister(eventName, handler)
@@ -65,14 +116,14 @@ function new()
       local handlers = allHandlers[eventName]
 
       if not handlers then
-        error("libevents error: no handler registered for the '" .. eventName .. "' event")
+        error("libeventloop error: no handler registered for the '" .. eventName .. "' event")
       end
 
       if handlers[handler] then
         handlers[handler] = nil
         handlersCounter = handlersCounter - 1;
-        if handlersCounter == 0 then
-          os.queueEvent(END_OF_LOOP)
+        if getHandlersCounter() == 0 then
+          api.stopLoop();
         end
       end
     end
@@ -98,56 +149,120 @@ function new()
 
     local handlers = allHandlers[eventName]
     if handlers[handler] then
-      error("libevents error: handler already registered for event '" .. eventName .. "'")
+      error("libeventloop error: handler already registered for event '" .. eventName .. "'")
     end
 
     handlers[handler] = handler;
     handlersCounter = handlersCounter + 1;
 
     return function()
-      unregister(eventName, handler)
+      api.unregister(eventName, handler)
     end
-  end
-
-  -- stopLoop
-  function api.stopLoop()
-    os.queueEvent(END_OF_LOOP)
   end
 
   -- runLoop
   function api.runLoop(onStopCallback)
     onStopCallback = onStopCallback or noop
 
-    if handlersCounter == 0 then
-      error("libevents error: try to run event loop without handlers (use 'register' before 'runLoop')")
+    if runningLoop then
+      error("libeventloop error: event loop is already ran")
     end
+
+    for _, f in pairs(timeoutFactories) do
+      local timerId, h = f()
+      insertTimeoutHandler(timerId, h)
+    end
+
+    resetFactories()
+
+    if getHandlersCounter() == 0 then
+      error(
+        "libeventloop error: tried to run event loop without handlers (use 'register' and/or 'setTimeout' before 'runLoop')")
+    end
+
+    runningLoop = true;
 
     while true do
       local packed = table.pack(os.pullEventRaw())
       local eventName = table.remove(packed, 1)
-      local handlers = allHandlers[eventName]
 
-      if handlers then
-        runningHandlers = eventName
-        for _, handler in pairs(handlers) do
-          local result_handler = handler(table.unpack(packed))
-          if result_handler then
-            unregister(eventName, handler)
+      if eventName == 'timer' then
+        -- setTimeout handlers
+        local timerId = packed[1];
+
+        for k, h in pairs(timeoutHandlers) do
+          if k == timerId then
+            removeTimeoutHandler(k)
+            h();
           end
         end
-        runningHandlers = nil
-        flushUnregisterQueue()
-      end
+      else
+        -- regular event handlers
+        local handlers = allHandlers[eventName]
+        if handlers then
+          runningHandlers = eventName
+          for _, handler in pairs(handlers) do
+            local result_handler = handler(table.unpack(packed))
+            if result_handler then
+              api.unregister(eventName, handler)
+            end
+          end
+          runningHandlers = nil
+          flushUnregisterQueue()
+        end
 
-      if eventName == END_OF_LOOP or eventName == 'terminate' then
-        onStopCallback()
-        resetAll()
-        break
+        if eventName == END_OF_LOOP or eventName == 'terminate' then
+          onStopCallback()
+          resetAll()
+          break
+        end
       end
     end
   end
 
   -- setTimeout
+  function api.setTimeout(handler, seconds)
+    seconds = math.abs(seconds or 0);
+
+    assert(type(handler) == 'function', 'bad argument #1 (function expected)')
+    assert(type(seconds) == 'number', 'bad argument #2 (number expected)')
+
+    if runningLoop then
+      local timerId = os.startTimer(seconds)
+
+      insertTimeoutHandler(timerId, handler)
+
+      return function()
+        -- clearTimeout
+        if timeoutHandlers[timerId] then
+          removeTimeoutHandler(timerId)
+          os.cancelTimer(timerId);
+        end
+      end
+    else
+      local timeoutFactoryId = nextTimeoutFactoryId;
+      nextTimeoutFactoryId = nextTimeoutFactoryId + 1
+
+      local timerId = nil;
+
+      local factory = function()
+        timerId = os.startTimer(seconds)
+        return timerId, handler;
+      end
+
+      timeoutFactories[timeoutFactoryId] = factory
+
+      return function()
+        -- clearTimeout
+        if timerId == nil then
+          timeoutFactories[timeoutFactoryId] = nil
+        elseif timeoutHandlers[timerId] then
+          removeTimeoutHandler(timerId)
+          os.cancelTimer(timerId);
+        end
+      end
+    end
+  end
 
   return api
 end
