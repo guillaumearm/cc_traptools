@@ -2,6 +2,8 @@
 --
 -- Example usage:
 --
+-- local events = eventloop.new()
+--
 -- local disposeRedstoneEvent = events.register("redstone", function()
 --   print("Redstone signal received!")
 -- end)
@@ -52,8 +54,9 @@ function new()
 
   local END_OF_LOOP = '@libevents/END_OF_LOOP/' .. eventloop_id
 
-  STOP = 'STOP'
+  api.STOP = 'STOP'
 
+  -- unregister
   function api.unregister(eventName, handler)
     assert(type(eventName) == 'string', 'bad argument #1 (string expected)')
     assert(type(handler) == 'function', 'bad argument #2 (function expected)')
@@ -84,6 +87,7 @@ function new()
     return removeHandler()
   end
 
+  -- register
   function api.register(eventName, handler)
     assert(type(eventName) == 'string', 'bad argument #1 (string expected)')
     assert(type(handler) == 'function', 'bad argument #2 (function expected)')
@@ -105,10 +109,12 @@ function new()
     end
   end
 
+  -- stopLoop
   function api.stopLoop()
     os.queueEvent(END_OF_LOOP)
   end
 
+  -- runLoop
   function api.runLoop(onStopCallback)
     onStopCallback = onStopCallback or noop
 
@@ -140,6 +146,8 @@ function new()
       end
     end
   end
+
+  -- setTimeout
 
   return api
 end
