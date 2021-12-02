@@ -1,4 +1,4 @@
-local EXPECTED_PASSWORD = {'orange', 'white', 'orange', 'white'}
+local EXPECTED_PASSWORD = {'white', 'orange', 'magenta', 'lightBlue'}
 local SECRET_DOOR_OUTPUT_COLOR = colors.orange;
 
 local TIMEOUT = 10
