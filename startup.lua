@@ -10,6 +10,10 @@ shell.setAlias("c", "clear")
 os.loadAPI("apis/bapil")
 bapil.hijackOSAPI()
 
+-- Load stacktrace API and install tpcall as replacement for pcall.
+assert(os.loadAPI("apis/stacktrace"))
+_G.pcall = stacktrace.tpcall
+
 -- 3. load common apis
 for _, apipath in ipairs(APIS_TO_LOAD) do
   print("=> loading ", apipath)

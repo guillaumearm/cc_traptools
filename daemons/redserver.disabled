@@ -4,7 +4,7 @@ local OUTPUT_SIDE = "right"
 local SERVER_COMMAND_CHANNEL = 140 -- 141 is usually used for output response feedback
 local INPUT_RESPONSE_FEEDBACK_CHANNEL = 142
 
-local events = eventloop.new()
+local events = eventloop.create()
 
 local rsw = rsw.new(OUTPUT_SIDE);
 local rsr = rsr.new(INPUT_SIDE);
@@ -76,6 +76,13 @@ for k, v in pairs(colorutils.getColors(rsw.mask())) do
 end
 print()
 
+_G.redserver = {}
+redserver.rsw = rsw
+redserver.rsr = rsr
+redserver.events = events
+
 print("======> Redstone server enabled!")
 events.runLoop()
 print("======> Redstone server disabled!")
+
+_G.redserver = nil

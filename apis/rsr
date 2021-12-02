@@ -16,14 +16,15 @@ function new(side)
     return redstone.getBundledInput(side)
   end
 
-  local function register(eventLoop, handler)
+  -- el = eventloop instance
+  local function register(el, handler)
     if type(handler) ~= 'function' then
       error("librsr error: handler should be a function")
     end
 
     local old_color = mask();
 
-    return eventLoop.register("redstone", function()
+    return el.register("redstone", function()
       local color = mask();
 
       if color ~= old_color then

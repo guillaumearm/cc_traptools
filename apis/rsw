@@ -1,5 +1,10 @@
 local PERSITANCE_PREFIX = '/var/rsw/'
 
+local NOOP_EVENT = '@librsw/noop_event'
+
+local function noop()
+end
+
 local function writeFile(filepath, data)
   local handler = fs.open(filepath, "w")
 
@@ -29,6 +34,8 @@ function new(side)
     error("rswlib error: parameter 1 'side' should be a string")
   end
 
+  local api = {}
+
   local filepath = PERSITANCE_PREFIX .. side
 
   local colormask;
@@ -46,11 +53,48 @@ function new(side)
     error("rswlib error: invalid colormask readed from '" .. filepath .. "'")
   end
 
-  local function get(color)
+  local nextHandlerId = 1;
+  local handlers = {};
+
+  -- listen
+  function api.listen(handler, optionalEventLoop)
+    assert(type(handler) == 'function', 'bad argument #1 (function expected)');
+
+    local id = nextHandlerId;
+
+    handlers[id] = handler
+    nextHandlerId = nextHandlerId + 1
+
+    handler(api.mask())
+
+    local dispose = noop;
+    local disposeDummyEvent = noop;
+
+    if optionalEventLoop then
+      disposeDummyEvent = optionalEventLoop.register(NOOP_EVENT, noop)
+
+      optionalEventLoop.onStop(function()
+        dispose()
+      end);
+    end
+
+    dispose = function()
+      if handlers[id] then
+        disposeDummyEvent()
+        handlers[id] = nil
+      end
+    end
+
+    return dispose
+  end
+
+  -- get
+  function api.get(color)
     return colors.test(colormask, color)
   end
 
-  local function set(color, enabled)
+  -- set
+  function api.set(color, enabled)
     if type(enabled) ~= "boolean" then
       error("rswlib error: set method should take a boolean as second parameter")
     end
@@ -66,6 +110,11 @@ function new(side)
     if newMask ~= colormask then
       colormask = newMask
       redstone.setBundledOutput(side, colormask)
+
+      for _, h in pairs(handlers) do
+        h(colormask)
+      end
+
       writeFile(filepath, tostring(colormask))
       return true
     end
@@ -73,20 +122,27 @@ function new(side)
     return false
   end
 
-  return {
-    get = get,
-    set = set,
-    mask = function()
-      return colormask
-    end,
-    reset = function()
-      if colormask == 0 then
-        return false
-      end
+  -- mask
+  function api.mask()
+    return colormask
+  end
 
-      colormask = 0
-      redstone.setBundledOutput(side, colormask)
-      return true
+  -- reset
+  function api.reset()
+    if colormask == 0 then
+      return false
     end
-  }
+
+    colormask = 0
+    redstone.setBundledOutput(side, colormask)
+
+    for _, h in pairs(handlers) do
+      h(colormask)
+    end
+
+    writeFile(filepath, tostring(colormask))
+    return true
+  end
+
+  return api
 end

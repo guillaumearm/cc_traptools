@@ -2,9 +2,6 @@ local DEFAULT_SERVER_COMMAND_CHANNEL = 140;
 local DEFAULT_OUTPUT_RESPONSE_FEEDBACK_CHANNEL = 141;
 local DEFAULT_INPUT_RESPONSE_FEEDBACK_CHANNEL = 142;
 
-local function noop()
-end
-
 function create(el, serverCommandChan, outputResponseChan, inputResponseChan)
   el = el or events
 
@@ -33,6 +30,11 @@ function create(el, serverCommandChan, outputResponseChan, inputResponseChan)
       error("librsclient error: invalid colorstate (boolean expected)")
     end
 
+    if redserver and redserver.rsw then
+      redserver.rsw.set(color, colorstate);
+      return
+    end
+
     local type;
     if colorstate then
       type = "on"
@@ -46,9 +48,14 @@ function create(el, serverCommandChan, outputResponseChan, inputResponseChan)
     })
   end
 
-  api.write = writeOutput
+  api.write = api.writeOutput
 
   function api.resetOutput()
+    if redserver and redserver.rsw then
+      redserver.rsw.reset();
+      return
+    end
+
     net.send(serverCommandChan, outputResponseChan, {
       type = 'reset'
     });
@@ -57,12 +64,20 @@ function create(el, serverCommandChan, outputResponseChan, inputResponseChan)
   api.reset = api.resetOutput
 
   function api.requestInputState()
+    if redserver and redserver.rsr then
+      return redserver.rsr.mask();
+    end
+
     return net.request(serverCommandChan, inputResponseChan, {
       type = "getstate_input"
     })
   end
 
   function api.requestOutputState()
+    if redserver and redserver.rsw then
+      return redserver.rsw.mask();
+    end
+
     return net.request(serverCommandChan, outputResponseChan, {
       type = "getstate"
     })
@@ -74,12 +89,22 @@ function create(el, serverCommandChan, outputResponseChan, inputResponseChan)
     local colormask = 0;
     local server = net.create_server(el);
 
-    local disposeListen = server.listen(outputResponseChan, function(_, newColormask)
-      if newColormask ~= colormask then
-        colormask = newColormask
-        return handler(newColormask)
-      end
-    end)
+    local disposeListen = nil
+    if redserver and redserver.rsw then
+      disposeListen = redserver.rsw.listen(function(newColormask)
+        if newColormask ~= colormask then
+          colormask = newColormask
+          return handler(newColormask)
+        end
+      end, el)
+    else
+      disposeListen = server.listen(outputResponseChan, function(_, newColormask)
+        if newColormask ~= colormask then
+          colormask = newColormask
+          return handler(newColormask)
+        end
+      end)
+    end
 
     el.onStart(function()
       -- warning: need a new eventloop instance here
