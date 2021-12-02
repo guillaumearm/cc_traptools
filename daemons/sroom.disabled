@@ -3,7 +3,7 @@ local SECRET_DOOR_OUTPUT_COLOR = colors.white;
 
 local TIMEOUT = 10
 local AUTOCLOSE_ENABLED = true;
-local AUTOCLOSE_TIMEOUT = 5;
+local AUTOCLOSE_TIMEOUT = 30;
 
 local UNIQ_COLORS = {}
 for _, v in pairs(EXPECTED_PASSWORD) do
@@ -51,12 +51,13 @@ local function buttonPressed(colorname)
 
       if AUTOCLOSE_ENABLED then
         el.setTimeout(function()
+          print('autoclose timeout: close the door')
           rsc.writeOutput(SECRET_DOOR_OUTPUT_COLOR, false);
         end, AUTOCLOSE_TIMEOUT)
       end
 
       resetStatePassword();
-      print('password ok')
+      print('password ok: open the door!')
     end
   end
 end
