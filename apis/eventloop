@@ -46,6 +46,9 @@ function new()
   local nextOnStopHandlerId = 1;
   local onStopHandlers = {};
 
+  -- onStart handlers
+  local onStartHandlers = {}
+
   local function resetOnStopHandlers()
     onStopHandlerCounter = 0;
     nextOnStopHandlerId = 1;
@@ -110,6 +113,8 @@ function new()
     timeoutHandlers = {};
 
     resetOnStopHandlers()
+
+    onStartHandlers = {}
   end
 
   local function flushUnregisterQueue()
@@ -215,6 +220,11 @@ function new()
 
     runningLoop = true;
 
+    for _, h in ipairs(onStartHandlers) do
+      h()
+    end
+    onStartHandlers = {}
+
     while true do
       local packed = table.pack(os.pullEventRaw())
       local eventName = table.remove(packed, 1)
@@ -318,7 +328,18 @@ function new()
     end
   end
 
-  return api
+  -- onStart
+  function api.onStart(handler)
+    assert(type(handler) == 'function', 'bad argument #1 (function expected)');
+
+    if runningLoop then
+      handler();
+    else
+      table.insert(onStartHandlers, handler);
+    end
+  end
+
+  return api;
 end
 
 create = new
