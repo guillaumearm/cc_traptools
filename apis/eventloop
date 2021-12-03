@@ -27,6 +27,8 @@ function new()
   local eventloop_id = next_eventloop_id;
   next_eventloop_id = next_eventloop_id + 1;
 
+  local shouldCheckHandlers = true;
+
   local handlersCounter = 0;
   local allHandlers = {};
 
@@ -76,8 +78,12 @@ function new()
     resetOnStopHandlers()
   end
 
-  local function getHandlersCounter()
-    return timeoutHandlersCounter + handlersCounter;
+  local function shouldStop()
+    if shouldCheckHandlers then
+      return timeoutHandlersCounter + handlersCounter == 0 and timeoutFactoryCounter == 0;
+    end
+
+    return false
   end
 
   local function insertTimeoutHandler(id, handler)
@@ -85,17 +91,12 @@ function new()
     timeoutHandlersCounter = timeoutHandlersCounter + 1
   end
 
-  -- TODO prefer use a factoryCounter
-  local function getNbFactories()
-    return timeoutFactoryCounter;
-  end
-
   local function removeTimeoutHandler(id)
     local function removeFn()
       timeoutHandlers[id] = nil;
       timeoutHandlersCounter = timeoutHandlersCounter - 1
 
-      if getHandlersCounter() == 0 and getNbFactories() == 0 then
+      if shouldStop() then
         api.stopLoop();
       end
     end
@@ -181,7 +182,7 @@ function new()
       if handlers[handler] then
         handlers[handler] = nil
         handlersCounter = handlersCounter - 1;
-        if getHandlersCounter() == 0 then
+        if shouldStop() then
           api.stopLoop();
         end
       end
@@ -220,19 +221,16 @@ function new()
   end
 
   -- runLoop
-  function api.runLoop(shouldCheckHandlers)
+  function api.runLoop(noCheckHandlers)
     if runningLoop then
       error("libeventloop error: event loop is already ran")
     end
 
+    shouldCheckHandlers = not noCheckHandlers
+
     applyTimeoutFactories()
 
-    if shouldCheckHandlers and getHandlersCounter() == 0 and onStopHandlerCounter == 0 then
-      error(
-        "libeventloop error: tried to run event loop without handlers (use 'register' and/or 'setTimeout' before 'runLoop')")
-    end
-
-    if getHandlersCounter() == 0 then
+    if shouldStop() then
       if onStopHandlerCounter > 0 then
         execOnStopHandlers()
       end
