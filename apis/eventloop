@@ -18,6 +18,9 @@
 -- events.runLoop();
 local next_eventloop_id = 1;
 
+local function noop()
+end
+
 STOP = '@libeventloop/STOP_HANDLER_SUBSCRIPTION';
 
 function new()
@@ -37,10 +40,10 @@ function new()
 
   -- used when setTimeout are registered when runningLoop is false
   local runningTimeoutHandler = false;
-  local timeoutFactoryCounter = 0
+  local timeoutFactoryCounter = 0;
   local nextTimeoutFactoryId = 1;
   local timeoutFactories = {};
-  local removeTimeoutQueue = {}
+  local removeTimeoutQueue = {};
 
   -- used at runtime
   local timeoutHandlersCounter = 0;
@@ -52,7 +55,13 @@ function new()
   local onStopHandlers = {};
 
   -- onStart handlers
-  local onStartHandlers = {}
+  local nextOnStartHandlerId = 1;
+  local onStartHandlers = {};
+
+  local function resetOnStartHandlers()
+    nextOnStartHandlerId = 1;
+    onStartHandlers = {};
+  end
 
   local function resetOnStopHandlers()
     onStopHandlerCounter = 0;
@@ -61,21 +70,28 @@ function new()
   end
 
   local function addOnStopHandler(h)
-    local id = nextOnStopHandlerId
+    local id = nextOnStopHandlerId;
 
     nextOnStopHandlerId = nextOnStopHandlerId + 1;
     onStopHandlerCounter = onStopHandlerCounter + 1;
 
     onStopHandlers[id] = h;
 
-    return id
+    return id;
+  end
+
+  local function execOnStartHandlers()
+    for _, h in pairs(onStartHandlers) do
+      h();
+    end
+    resetOnStartHandlers();
   end
 
   local function execOnStopHandlers()
     for _, h in pairs(onStopHandlers) do
-      h()
+      h();
     end
-    resetOnStopHandlers()
+    resetOnStopHandlers();
   end
 
   local function shouldStop()
@@ -93,11 +109,13 @@ function new()
 
   local function removeTimeoutHandler(id)
     local function removeFn()
-      timeoutHandlers[id] = nil;
-      timeoutHandlersCounter = timeoutHandlersCounter - 1
+      if timeoutHandlers[id] then
+        timeoutHandlers[id] = nil;
+        timeoutHandlersCounter = timeoutHandlersCounter - 1
 
-      if shouldStop() then
-        api.stopLoop();
+        if shouldStop() then
+          api.stopLoop();
+        end
       end
     end
 
@@ -135,11 +153,10 @@ function new()
     runningTimeoutHandler = false;
     timeoutHandlersCounter = 0;
     timeoutHandlers = {};
-    removeTimeoutQueue = {}
+    removeTimeoutQueue = {};
 
-    resetOnStopHandlers()
-
-    onStartHandlers = {}
+    resetOnStartHandlers();
+    resetOnStopHandlers();
   end
 
   local function flushUnregisterQueue()
@@ -158,9 +175,14 @@ function new()
 
   api.STOP = STOP
 
+  -- isRunningLoop
+  function api.isRunningLoop()
+    return runningLoop;
+  end
+
   -- stopLoop
   function api.stopLoop()
-    if runningLoop then
+    if api.isRunningLoop() then
       os.queueEvent(END_OF_LOOP)
     else
       error("libeventloop error: loop is already stopped")
@@ -222,7 +244,7 @@ function new()
 
   -- runLoop
   function api.runLoop(noCheckHandlers)
-    if runningLoop then
+    if api.isRunningLoop() then
       error("libeventloop error: event loop is already ran")
     end
 
@@ -238,11 +260,7 @@ function new()
     end
 
     runningLoop = true;
-
-    for _, h in ipairs(onStartHandlers) do
-      h()
-    end
-    onStartHandlers = {}
+    execOnStartHandlers()
 
     while true do
       local packed = table.pack(os.pullEventRaw())
@@ -301,7 +319,7 @@ function new()
     assert(type(handler) == 'function', 'bad argument #1 (function expected)')
     assert(type(seconds) == 'number', 'bad argument #2 (number expected)')
 
-    if runningLoop and not runningTimeoutHandler then
+    if api.isRunningLoop() and not runningTimeoutHandler then
       local timerId = os.startTimer(seconds)
 
       insertTimeoutHandler(timerId, handler)
@@ -360,10 +378,20 @@ function new()
   function api.onStart(handler)
     assert(type(handler) == 'function', 'bad argument #1 (function expected)');
 
-    if runningLoop then
+    if api.isRunningLoop() then
       handler();
+      return noop;
     else
-      table.insert(onStartHandlers, handler);
+      local onStartId = nextOnStartHandlerId;
+      nextOnStartHandlerId = nextOnStartHandlerId + 1;
+
+      onStartHandlers[onStartId] = handler
+
+      return function()
+        if onStartHandlers[onStartId] then
+          onStartHandlers[onStartId] = nil;
+        end
+      end
     end
   end
 

@@ -1,0 +1,131 @@
+-- between 0.0 and 3.0
+local DEFAULT_VOLUME = 3.0;
+
+-- between 0.5 and 2.0
+local DEFAULT_SAMPLE_PITCH = 1.0
+
+-- between 0 and 24
+local DEFAULT_NOTE_PITCH = 12;
+
+local memoizedSpeaker;
+
+local function noop(...)
+end
+
+local function getSpeaker()
+  if memoizedSpeaker then
+    return memoizedSpeaker;
+  end
+
+  local speaker = peripheral.find('speaker');
+
+  if not speaker then
+    error('no speaker peripheral');
+  end
+
+  memoizedSpeaker = speaker;
+
+  return speaker;
+end
+
+-- msequencer: a simple Musical Step Sequencer api based on mclock
+function play(action)
+  if not action or not action.instrument then
+    return false
+  end
+
+  local speaker = getSpeaker();
+
+  local volume = action.volume or DEFAULT_VOLUME;
+
+  if action.instrument == 'sample' then
+    return speaker.playSound(action.sample, volume, action.pitch or DEFAULT_SAMPLE_PITCH);
+  else
+    return speaker.playNote(action.instrument, volume, action.pitch or DEFAULT_NOTE_PITCH);
+  end
+end
+
+local playAction = play;
+
+function create(el)
+  local api = {};
+
+  el = el or events;
+
+  local clock = mclock.create(el);
+
+  local pattern = {{}};
+  local patternLength = 1;
+
+  local handler = noop;
+
+  clock.setHandler(function(stepCounter)
+    local cursor = ((stepCounter - 1) % patternLength) + 1;
+    local numloop = math.floor((stepCounter - 1) / patternLength) + 1;
+
+    local actions = pattern[cursor];
+    if not actions[1] then
+      actions = {actions};
+    end
+
+    for _, action in ipairs(actions) do
+      playAction(action);
+    end
+
+    handler(cursor, numloop);
+  end);
+
+  function api.resetPattern()
+    pattern = {{}};
+    patternLength = 1;
+  end
+
+  function api.setPattern(newPattern)
+    if not newPattern then
+      error('no pattern provided');
+    end
+
+    local newPatternLength = #newPattern;
+
+    if newPatternLength == 0 then
+      api.resetPattern();
+    else
+      pattern = newPattern;
+      patternLength = newPatternLength;
+    end
+  end
+
+  -- pattern length
+  function api.getSteps()
+    return patternLength;
+  end
+
+  function api.setHandler(h)
+    assert(type(h) == 'function', 'bad argument #1 (function expected)');
+    handler = h
+
+    local disposed = false;
+
+    return function()
+      if not disposed then
+        disposed = true;
+        handler = noop;
+      end
+    end
+  end
+
+  api.start = clock.start;
+  api.play = clock.play;
+  api.pause = clock.pause;
+  api.stop = clock.stop;
+  api.reset = clock.reset;
+  api.getBpm = clock.getBpm;
+  api.setBpm = clock.setBpm;
+  api.getStepDiv = clock.getStepDiv;
+  api.setStepDiv = clock.setStepDiv;
+  api.isRunning = clock.isRunning;
+
+  return api;
+end
+
+new = create;
