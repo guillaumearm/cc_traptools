@@ -21,7 +21,10 @@ function create(el)
 
     if f then
       f();
-      el.setTimeout(private.dequeueMessages, api.getCooldown() / 1000);
+
+      if #queueMessages > 0 then
+        el.setTimeout(private.dequeueMessages, api.getCooldown() / 1000);
+      end
     end
   end
 
