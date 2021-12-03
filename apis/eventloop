@@ -34,8 +34,11 @@ function new()
   local unregisterQueue = {};
 
   -- used when setTimeout are registered when runningLoop is false
+  local runningTimeoutHandler = false;
+  local timeoutFactoryCounter = 0
   local nextTimeoutFactoryId = 1;
   local timeoutFactories = {};
+  local removeTimeoutQueue = {}
 
   -- used at runtime
   local timeoutHandlersCounter = 0;
@@ -82,18 +85,37 @@ function new()
     timeoutHandlersCounter = timeoutHandlersCounter + 1
   end
 
-  local function removeTimeoutHandler(id)
-    timeoutHandlers[id] = nil;
-    timeoutHandlersCounter = timeoutHandlersCounter - 1
+  -- TODO prefer use a factoryCounter
+  local function getNbFactories()
+    return timeoutFactoryCounter;
+  end
 
-    if getHandlersCounter() == 0 then
-      api.stopLoop();
+  local function removeTimeoutHandler(id)
+    local function removeFn()
+      timeoutHandlers[id] = nil;
+      timeoutHandlersCounter = timeoutHandlersCounter - 1
+
+      if getHandlersCounter() == 0 and getNbFactories() == 0 then
+        api.stopLoop();
+      end
     end
+
+    table.insert(removeTimeoutQueue, removeFn);
   end
 
   local function resetFactories()
+    timeoutFactoryCounter = 0;
     nextTimeoutFactoryId = 1;
     timeoutFactories = {}
+  end
+
+  local function applyTimeoutFactories()
+    for _, f in pairs(timeoutFactories) do
+      local timerId, h = f()
+      insertTimeoutHandler(timerId, h)
+    end
+
+    resetFactories();
   end
 
   local function resetAll()
@@ -109,8 +131,10 @@ function new()
       os.cancelTimer(k);
     end
 
+    runningTimeoutHandler = false;
     timeoutHandlersCounter = 0;
     timeoutHandlers = {};
+    removeTimeoutQueue = {}
 
     resetOnStopHandlers()
 
@@ -201,12 +225,7 @@ function new()
       error("libeventloop error: event loop is already ran")
     end
 
-    for _, f in pairs(timeoutFactories) do
-      local timerId, h = f()
-      insertTimeoutHandler(timerId, h)
-    end
-
-    resetFactories();
+    applyTimeoutFactories()
 
     if shouldCheckHandlers and getHandlersCounter() == 0 and onStopHandlerCounter == 0 then
       error(
@@ -235,22 +254,21 @@ function new()
         -- setTimeout handlers
         local timerId = packed[1];
 
-        local removeTimeoutQueue = {}
+        runningTimeoutHandler = true
         for k, h in pairs(timeoutHandlers) do
           if k == timerId then
-            local removeFn = function()
-              return removeTimeoutHandler(k)
-            end
-
-            table.insert(removeTimeoutQueue, removeFn);
-
+            removeTimeoutHandler(k)
             h();
           end
         end
+        runningTimeoutHandler = false
 
         for _, removeFn in ipairs(removeTimeoutQueue) do
           removeFn()
         end
+        removeTimeoutQueue = {}
+
+        applyTimeoutFactories()
       else
         -- regular event handlers
         local handlers = allHandlers[eventName]
@@ -285,7 +303,7 @@ function new()
     assert(type(handler) == 'function', 'bad argument #1 (function expected)')
     assert(type(seconds) == 'number', 'bad argument #2 (number expected)')
 
-    if runningLoop then
+    if runningLoop and not runningTimeoutHandler then
       local timerId = os.startTimer(seconds)
 
       insertTimeoutHandler(timerId, handler)
@@ -309,11 +327,13 @@ function new()
       end
 
       timeoutFactories[timeoutFactoryId] = factory
+      timeoutFactoryCounter = timeoutFactoryCounter + 1;
 
       return function()
         -- clearTimeout
-        if timerId == nil then
+        if timerId == nil and timeoutFactories[timeoutFactoryId] then
           timeoutFactories[timeoutFactoryId] = nil
+          timeoutFactoryCounter = timeoutFactoryCounter - 1;
         elseif timeoutHandlers[timerId] then
           removeTimeoutHandler(timerId)
           os.cancelTimer(timerId);
