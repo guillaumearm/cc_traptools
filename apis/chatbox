@@ -39,7 +39,7 @@ function create(el)
       local result = sendFn();
 
       if not result then
-        el.setTimeout(private.dequeueMessage, api.getCooldown() / 1000);
+        el.setTimeout(private.dequeueMessages, api.getCooldown() / 1000);
       end
     end
   end
@@ -56,7 +56,7 @@ function create(el)
       local result = sendFn();
 
       if not result then
-        el.setTimeout(private.dequeueMessage, api.getCooldown() / 1000);
+        el.setTimeout(private.dequeueMessages, api.getCooldown() / 1000);
       end
     end
   end
@@ -73,7 +73,7 @@ function create(el)
       local result = sendFn();
 
       if not result then
-        el.setTimeout(private.dequeueMessage, api.getCooldown() / 1000);
+        el.setTimeout(private.dequeueMessages, api.getCooldown() / 1000);
       end
     end
   end
