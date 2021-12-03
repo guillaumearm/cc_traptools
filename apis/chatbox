@@ -8,10 +8,13 @@ function create(el)
     error('invalid eventloop instance provided');
   end
 
-  local chatbox = peripheral.find('chatBox');
+  local function getChatbox()
+    local chatbox = peripheral.find('chatBox');
 
-  if not chatbox then
-    error("no chatBox peripheral found");
+    if not chatbox then
+      error("no chatBox peripheral found");
+    end
+    return chatbox
   end
 
   local queueMessages = {};
@@ -45,28 +48,31 @@ function create(el)
 
   -- sendMessage
   function api.sendMessage(message, prefix)
+    prefix = prefix or 'trapbot'
     return private.send(function()
-      return chatbox.sendMessage(message, prefix);
+      return getChatbox().sendMessage(message, prefix);
     end)
   end
 
   -- sendFormattedMessage
   function api.sendFormattedMessage(payload, prefix)
+    prefix = prefix or 'trapbot'
     return private.send(function()
-      return chatbox.sendFormattedMessage(textutils.serializeJSON(payload), prefix);
+      return getChatbox().sendFormattedMessage(textutils.serializeJSON(payload), prefix);
     end)
   end
 
   -- sendMessageToPlayer
   function api.sendMessageToPlayer(message, user, prefix)
+    prefix = prefix or 'trapbot'
     return private.send(function()
-      return chatbox.sendMessageToPlayer(message, user, prefix);
+      return getChatbox().sendMessageToPlayer(message, user, prefix);
     end)
   end
 
   -- getCooldown (result in ms)
   function api.getCooldown()
-    return chatbox.getOperationCooldown('chatMessage');
+    return getChatbox().getOperationCooldown('chatMessage');
   end
 
   -- listen

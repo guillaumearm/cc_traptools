@@ -17,10 +17,12 @@ function getColors(colormask)
   return result
 end
 
-function getColorChange(colorname, oldMask, newMask)
-  local color = colors[colorname]
+function isValidColorName(colorname)
+  return type(colors[colorname]) == 'number'
+end
 
-  if not color then
+function getColorChange(colorname, oldMask, newMask)
+  if not isValidColorName(colorname) then
     error("colorutils::getColorChange error: invalid colorname provided (color string expected")
   end
 
@@ -31,6 +33,8 @@ function getColorChange(colorname, oldMask, newMask)
   if type(newMask) ~= "number" then
     error("colorutils::getColorChange error: invalid newMask provided (number expected)")
   end
+
+  local color = colors[colorname]
 
   local oldState = colors.test(oldMask, color);
   local newState = colors.test(newMask, color);
@@ -43,3 +47,4 @@ function getColorChange(colorname, oldMask, newMask)
 
   return nil
 end
+
