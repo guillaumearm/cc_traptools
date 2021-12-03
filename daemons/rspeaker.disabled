@@ -1,0 +1,18 @@
+local SPEAKER_CHANNEL = 345;
+
+local el = eventloop.create();
+local server = net.create_server(el);
+
+local speaker = peripheral.find('speaker');
+
+if not speaker then
+  error('unable to retrieve speaker peripheral');
+end
+
+server.listen(SPEAKER_CHANNEL, function(_, payload)
+  if type(payload) == 'table' then
+    msequencer.play(payload);
+  end
+end);
+
+server.start();
