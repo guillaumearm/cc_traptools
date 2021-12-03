@@ -1,0 +1,86 @@
+-- mclock: a simple Musical Clock api
+local DEFAULT_BPM = 127;
+local DEFAULT_STEP_DIV = 16;
+
+local noop = function(_)
+end
+
+function create(el)
+  local api = {}
+
+  el = el or events
+  local bpm = DEFAULT_BPM
+  local handler = noop
+  local stepDiv = DEFAULT_STEP_DIV;
+
+  local play = false;
+  local dispose = noop
+  local counter = 1;
+
+  local function runDispose()
+    dispose();
+    dispose = noop;
+  end
+
+  local function getTime()
+    return 60 / bpm / stepDiv;
+  end
+
+  local function executeHandler()
+    local result_handler = handler(counter)
+    counter = counter + 1
+    return result_handler
+  end
+
+  local function start_interval()
+    dispose = el.setTimeout(function()
+      executeHandler()
+      start_interval();
+    end, getTime())
+  end
+
+  function api.play()
+    if not play then
+      play = true;
+      executeHandler();
+      start_interval();
+    end
+  end
+
+  api.start = api.play
+
+  function api.pause()
+    runDispose();
+    play = false;
+  end
+
+  function api.reset()
+    counter = 1;
+  end
+
+  function api.stop()
+    api.pause();
+    api.reset();
+  end
+
+  function api.setStepDiv(givenStepDiv)
+    assert(type(givenStepDiv) == 'number' and givenStepDiv > 0, 'bad argument #1 (number > 0 expected)');
+    stepDiv = givenStepDiv
+  end
+
+  function api.setBpm(givenBpm)
+    assert(type(givenBpm) == 'number' and givenBpm > 0, 'bad argument #1 (number > 0 expected)');
+    bpm = givenBpm;
+  end
+
+  function api.getBpm()
+    return bpm;
+  end
+
+  function api.setHandler(h)
+    assert(type(h) == 'function', 'bad argument #1 (function expected)');
+    handler = h
+  end
+
+  return api;
+end
