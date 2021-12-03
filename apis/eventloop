@@ -213,7 +213,7 @@ function new()
         "libeventloop error: tried to run event loop without handlers (use 'register' and/or 'setTimeout' before 'runLoop')")
     end
 
-    if shouldCheckHandlers and getHandlersCounter() == 0 and onStopHandlerCounter > 0 then
+    if getHandlersCounter() == 0 and onStopHandlerCounter > 0 then
       execOnStopHandlers()
       return
     end
