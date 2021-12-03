@@ -9,6 +9,6 @@ chat.listen(function(user, message)
   end
 end)
 
-print('shrug daemon started!')
+print('emoji daemon started!')
 chat.start()
-print('shrug daemon stopped!')
+print('emoji daemon stopped!')
