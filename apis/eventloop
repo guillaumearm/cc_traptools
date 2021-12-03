@@ -235,11 +235,22 @@ function new()
         -- setTimeout handlers
         local timerId = packed[1];
 
+        local removeTimeoutQueue = {}
         for k, h in pairs(timeoutHandlers) do
           if k == timerId then
+            local removeFn = function()
+              return removeTimeoutHandler(k)
+            end
+
+            table.insert(removeTimeoutQueue, removeFn);
+
             removeTimeoutHandler(k)
             h();
           end
+        end
+
+        for _, removeFn in ipairs(removeTimeoutQueue) do
+          removeFn()
         end
       else
         -- regular event handlers
