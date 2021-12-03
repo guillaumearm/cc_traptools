@@ -1,13 +1,20 @@
-local EXPECTED_PASSWORD = {'white', 'orange', 'magenta', 'lightBlue'}
-local SECRET_DOOR_OUTPUT_COLOR = colors.white;
+local EXPECTED_PASSWORD = {'white', 'orange', 'magenta', 'lightBlue'};
+local SECRET_DOOR_OUTPUT_COLOR = 'white';
 
-local TIMEOUT = 10
-local AUTOCLOSE_ENABLED = false;
-local AUTOCLOSE_TIMEOUT = 30;
+local BUTTON_PRESS_TIMEOUT = 10;
+local AUTOCLOSE_ENABLED = true;
+local AUTOCLOSE_TIMEOUT = 60;
 
-local UNIQ_COLORS = {}
-for _, v in pairs(EXPECTED_PASSWORD) do
-  UNIQ_COLORS[v] = v;
+local UNIQ_COLORS = {};
+for _, colorname in pairs(EXPECTED_PASSWORD) do
+  if not colorutils.isValidColorName(colorname) then
+    error("sdoors error: invalid colorname '" .. colorname .. "' in EXPECTED_PASSWORD");
+  end
+  UNIQ_COLORS[colorname] = colorname;
+end
+
+if not colorutils.isValidColorName(SECRET_DOOR_OUTPUT_COLOR) then
+  error("sdoors error: invalid colorname '" .. SECRET_DOOR_OUTPUT_COLOR .. "' for SECRET_DOOR_OUTPUT_COLOR");
 end
 
 local function noop()
@@ -15,6 +22,7 @@ end
 
 local el = eventloop.create();
 local rsc = rsclient.create(el);
+local chat = chatbox.create(el);
 
 local statePassword = {};
 local disposeTimeout = noop;
@@ -22,7 +30,7 @@ local disposeTimeout = noop;
 local function buttonPressed(colorname)
   return function(enabled)
     if not enabled then
-      return
+      return;
     end
 
     local cursor = #statePassword + 1;
@@ -35,29 +43,29 @@ local function buttonPressed(colorname)
 
     if colorname == EXPECTED_PASSWORD[cursor] then
       table.insert(statePassword, colorname);
-      print("'" .. colorname .. "' pressed")
+      print("'" .. colorname .. "' pressed");
       disposeTimeout();
       disposeTimeout = el.setTimeout(function()
-        print("password timeout for '" .. colorname .. "'")
-        statePassword = {}
-      end, TIMEOUT)
+        print("password timeout for '" .. colorname .. "'");
+        statePassword = {};
+      end, BUTTON_PRESS_TIMEOUT);
     else
-      print('invalid password')
-      resetStatePassword()
+      print('invalid password');
+      resetStatePassword();
     end
 
     if cursor == #EXPECTED_PASSWORD then
-      rsc.writeOutput(SECRET_DOOR_OUTPUT_COLOR, true);
+      rsc.writeOutput(colors[SECRET_DOOR_OUTPUT_COLOR], true);
 
       if AUTOCLOSE_ENABLED then
         el.setTimeout(function()
-          print('autoclose timeout: close the door')
-          rsc.writeOutput(SECRET_DOOR_OUTPUT_COLOR, false);
-        end, AUTOCLOSE_TIMEOUT)
+          print('autoclose timeout: close the door');
+          rsc.writeOutput(colors[SECRET_DOOR_OUTPUT_COLOR], false);
+        end, AUTOCLOSE_TIMEOUT);
       end
 
       resetStatePassword();
-      print('password ok: open the door!')
+      print('password ok: open the door!');
     end
   end
 end
@@ -65,16 +73,33 @@ end
 local function listenColor(colorname)
   colorname = colorname or '';
   if not colors[colorname] then
-    error("sdoors error: invalid color '" .. colorname .. "'")
+    error("sdoors error: invalid color '" .. colorname .. "'");
   end
 
-  rsc.listenInput(colorname, buttonPressed(colorname))
+  rsc.listenInput(colorname, buttonPressed(colorname));
 end
 
 for _, colorname in pairs(UNIQ_COLORS) do
-  listenColor(colorname)
+  listenColor(colorname);
 end
 
-print('=> secret door enabled')
+rsc.listenOutput(SECRET_DOOR_OUTPUT_COLOR, function(enabled)
+  local text, color;
+
+  if enabled then
+    text = 'secret door opened!';
+    color = "gold";
+  else
+    text = "secret door closed!";
+    color = "red";
+  end
+
+  chat.sendFormattedMessage({
+    text = text,
+    color = color
+  });
+end)
+
+print('=> secret door enabled');
 el.startLoop();
-print('=> secret door disabled')
+print('=> secret door disabled');
