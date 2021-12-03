@@ -65,7 +65,7 @@ end
 local function listenColor(colorname)
   colorname = colorname or '';
   if not colors[colorname] then
-    error("sroom error: invalid color '" .. colorname .. "'")
+    error("sdoors error: invalid color '" .. colorname .. "'")
   end
 
   rsc.listenInput(colorname, buttonPressed(colorname))

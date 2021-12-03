@@ -1,4 +1,5 @@
-local chat = chatbox.create()
+local el = eventloop.create()
+local chat = chatbox.create(el)
 
 chat.listen(function(user, message)
   if string.find(message, '\\shrug') ~= nil then
