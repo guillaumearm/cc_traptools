@@ -1,12 +1,19 @@
 local NETWORK_TIMEOUT = 2; -- in seconds
 
+local memoizedModem = nil;
+
 local function getModem()
+  if memoizedModem then
+    return memoizedModem
+  end
+
   local modem = peripheral.find("modem");
 
   if not modem then
     error("network error: no modem found")
   end
 
+  memoizedModem = modem;
   return modem
 end
 
