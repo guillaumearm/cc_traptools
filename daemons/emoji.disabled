@@ -4,7 +4,7 @@ local chat = chatbox.create(el)
 chat.listen(function(user, message)
   if string.find(message, '\\shrug') ~= nil then
     chat.sendFormattedMessage({
-      text = '¯\\_(?)_/¯',
+      text = '¯\\_(ツ)_/¯',
       color = "gray"
     }, user)
   end
