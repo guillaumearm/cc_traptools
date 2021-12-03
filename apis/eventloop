@@ -196,9 +196,7 @@ function new()
   end
 
   -- runLoop
-  function api.runLoop(noCheckHandlers)
-    local shouldCheckHandlers = not noCheckHandlers
-
+  function api.runLoop(shouldCheckHandlers)
     if runningLoop then
       error("libeventloop error: event loop is already ran")
     end
