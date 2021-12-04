@@ -1,6 +1,6 @@
 local LIST_FILES = {'startup.lua', 'apis/bapil', 'apis/stacktrace', 'apis/eventloop', 'apis/colorutils', 'apis/rsw',
                     'apis/rsr', 'apis/rsclient', 'apis/net', 'apis/chatbox', 'apis/mclock', 'apis/msequencer',
-                    'apis/logger', 'apis/daemon', 'bin/cat.lua', 'bin/daemon.lua'};
+                    'apis/logger', 'apis/daemon', 'bin/cat.lua', 'bin/daemon.lua', 'bin/seq'};
 
 local DAEMON_LIST = {'redserver', 'sdoors', 'emoji', 'rspeaker'}
 
