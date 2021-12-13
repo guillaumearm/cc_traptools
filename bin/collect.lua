@@ -15,6 +15,8 @@ local right = turtle.turnRight;
 local forward = turtle.forward;
 local back = turtle.back;
 
+local private = {};
+
 local function printFuel()
   print('=> Initial Fuel: ', turtle.getFuelLevel(), '/', turtle.getFuelLimit())
 end
@@ -50,7 +52,7 @@ local function cleanup()
 end
 
 -- when front of ender chest
-local function goBackCleanup()
+function private.goBackCleanup()
   right();
   down();
   down();
@@ -76,7 +78,7 @@ local function reload()
 
   local cubeSlot = findEnergyCube()
   if not cubeSlot then
-    goBackReload()
+    private.goBackReload()
     error('Fatal: item "' .. ENERGY_CUBE_NAME .. '" not found')
   end
 
@@ -96,7 +98,7 @@ local function reload()
 end
 
 -- when front of energy cube
-local function goBackReload()
+function private.goBackReload()
   right();
   down();
   down();
@@ -189,9 +191,9 @@ local function main()
   if shouldCleanup() then
     goCleanupFromReload();
     cleanup();
-    goBackCleanup();
+    private.goBackCleanup();
   else
-    goBackReload();
+    private.goBackReload();
   end
 
   print('=> Turtle collect started')
@@ -206,14 +208,14 @@ local function main()
     if getNbFreeStack() <= 2 then
       goCleanup();
       cleanup();
-      goBackCleanup();
+      private.goBackCleanup();
     end
 
     printFuel();
     if turtle.getFuelLevel() <= ENERGY_THRESHOLD then
       goReload()
       reload();
-      goBackReload();
+      private.goBackReload();
     end
   end
 
