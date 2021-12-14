@@ -25,19 +25,34 @@ local SMILE_TEXT = "\
      `-.__.'"
 
 local ROCKET_TEXT = "\
-     /\\\
-    (  )\
-    (  )\
-   /|/\\|\\\
-  /_||||_\\"
+        |\
+       / \\\
+      / _ \\\
+     |.o '.|\
+     |'._.'|\
+     |     |\
+   ,'|  |  |`.\
+  /  |  |  |  \\\
+  |,-'--|--'-.| "
 
-print(ROCKET_TEXT)
+local SAPIN_TEXT = "\
+     !\
+   -~*~-\
+    /!\\\
+   /%;@\\\
+  o/@,%\\o\
+  /%;`@,\\\
+ o/@'%',\\o\
+ '^^^N^^^` "
+
+print(SAPIN_TEXT)
 
 local EMOJIS = {
   shrug = SHRUG_TEXT,
   ok = OK_TEXT,
   smile = SMILE_TEXT,
-  rocket = ROCKET_TEXT
+  rocket = ROCKET_TEXT,
+  sapin = SAPIN_TEXT
 }
 
 local HELP_MESSAGE = '';
