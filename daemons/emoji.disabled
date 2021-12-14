@@ -4,6 +4,7 @@ local el = eventloop.create()
 local chat = chatbox.create(el)
 
 local SHRUG_TEXT = '¯\\_(?)_/¯'
+local WOO_TEXT = '\\(^O^)/';
 
 local OK_TEXT = '\
           |)`\
@@ -26,16 +27,14 @@ local SMILE_TEXT = "\
 
 local ROCKET_TEXT = "\
         |\
-       / \\\
-      / _ \\\
+      / \\\
+     / _ \\\
      |.o '. |\
      |'._.' |\
      |     |\
    ,' |  |  |`.\
   /  |  |  |  \\\
   |,-'--|--'-.| "
-
-print(ROCKET_TEXT);
 
 local SAPIN_TEXT = "\
       !\
@@ -46,15 +45,33 @@ local SAPIN_TEXT = "\
  o/@'%',\\o\
  '^^^N^^^` "
 
--- print(SAPIN_TEXT)
+local ROFL_TEXT = "\
+    ROFL:ROFL:ROFL:ROFL\
+          ___^___ _\
+ L     __/      [] \\    \
+LOL===__           \\ \
+ L      \\___ ___ ___]\
+            I   I\
+       ----------/"
 
 local EMOJIS = {
   shrug = SHRUG_TEXT,
+  woo = WOO_TEXT,
   ok = OK_TEXT,
   smile = SMILE_TEXT,
   rocket = ROCKET_TEXT,
-  sapin = SAPIN_TEXT
+  sapin = SAPIN_TEXT,
+  rofl = ROFL_TEXT
 }
+
+local ONE_LINE_EMOJIS = {
+  shrug = true,
+  woo = true
+};
+
+local function isOneLineEmoji(emojiName)
+  return ONE_LINE_EMOJIS[emojiName] or false;
+end
 
 local HELP_MESSAGE = '';
 for emojiName, _ in pairs(EMOJIS) do
@@ -100,7 +117,7 @@ chat.listen(function(user, message)
 
   for emojiName, emojiText in pairs(EMOJIS) do
     if isCmd(emojiName) then
-      if emojiName == 'shrug' then
+      if isOneLineEmoji(emojiName) then
         send(emojiText, emojiName);
       else
         send(emojiText, emojiName, message);
