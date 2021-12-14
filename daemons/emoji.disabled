@@ -17,6 +17,19 @@ local OK_TEXT = '\
          /\
         /'
 
+local HI_TEXT = "\
+      _.-._\
+     | | | |_\
+     | | | | |\
+     | | | | |\
+   _ |  '-._ |\
+   \\`\\`-.'-._;\
+    \\    '   |\
+     \\  .`  /\
+      |    |"
+
+local BYE_TEXT = HI_TEXT;
+
 local SMILE_TEXT = "\
   ,--.     ,--.\
 (  O )   (  O )\
@@ -55,6 +68,8 @@ LOL===__           \\ \
        ----------/"
 
 local EMOJIS = {
+  hi = HI_TEXT,
+  bye = BYE_TEXT,
   shrug = SHRUG_TEXT,
   woo = WOO_TEXT,
   ok = OK_TEXT,
