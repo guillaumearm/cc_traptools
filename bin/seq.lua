@@ -76,25 +76,25 @@ local function getColorWhenEmpty(x)
   end
 end
 
-local function spacedString(n)
-  local str = "";
+-- local function spacedString(n)
+--   local str = "";
 
-  for _ = 1, n, 1 do
-    str = str .. " "
-  end
+--   for _ = 1, n, 1 do
+--     str = str .. " "
+--   end
 
-  return str;
-end
+--   return str;
+-- end
 
-local function rightPad(n, str)
-  local diff = n - #str
+-- local function rightPad(n, str)
+--   local diff = n - #str
 
-  if diff > 0 then
-    return str .. spacedString(diff)
-  end
+--   if diff > 0 then
+--     return str .. spacedString(diff)
+--   end
 
-  return str
-end
+--   return str
+-- end
 
 local windowInstruments = window.create(monitor, 1, 1, INSTRUMENTS_WIDTH, instrumentsHeight);
 windowInstruments.setBackgroundColor(colors.black)

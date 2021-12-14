@@ -54,7 +54,7 @@ local function createSend(user)
     userMessage = string.gsub(userMessage, CMD_PREFIX .. emojiName, '');
 
     return chat.sendFormattedMessage({
-      text = text .. userMessage,
+      text = text .. ' ' .. userMessage,
       color = "gray"
     }, user)
   end
