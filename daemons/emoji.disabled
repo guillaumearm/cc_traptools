@@ -3,8 +3,9 @@ local CMD_PREFIX = '\\';
 local el = eventloop.create()
 local chat = chatbox.create(el)
 
-local SHRUG_TEXT = '¯\\_(?)_/¯'
+local SHRUG_TEXT = '¯\\_(°_o)_/¯'
 local WOO_TEXT = '\\(^O^)/';
+local TABLE_TEXT = '(╯°□°）╯︵ ┻━┻';
 
 local OK_TEXT = '\
           |)`\
@@ -68,10 +69,12 @@ LOL===__           \\ \
        ----------/"
 
 local EMOJIS = {
-  hi = HI_TEXT,
-  bye = BYE_TEXT,
   shrug = SHRUG_TEXT,
   woo = WOO_TEXT,
+  table = TABLE_TEXT,
+
+  hi = HI_TEXT,
+  bye = BYE_TEXT,
   ok = OK_TEXT,
   smile = SMILE_TEXT,
   rocket = ROCKET_TEXT,
@@ -81,7 +84,8 @@ local EMOJIS = {
 
 local ONE_LINE_EMOJIS = {
   shrug = true,
-  woo = true
+  woo = true,
+  table = true
 };
 
 local function isOneLineEmoji(emojiName)
