@@ -49,9 +49,11 @@ HELP_MESSAGE = "Available emojis: " .. HELP_MESSAGE;
 print(HELP_MESSAGE)
 
 local function createSend(user)
-  return function(text)
+  return function(text, userMessage)
+    userMessage = userMessage or '';
+
     return chat.sendFormattedMessage({
-      text = text,
+      text = text .. userMessage,
       color = "gray"
     }, user)
   end
@@ -64,7 +66,6 @@ local function createIsCmd(message)
 end
 
 local function help()
-
   return chat.sendFormattedMessage({
     text = HELP_MESSAGE,
     color = "green"
@@ -82,7 +83,11 @@ chat.listen(function(user, message)
 
   for emojiName, emojiText in pairs(EMOJIS) do
     if isCmd(emojiName) then
-      send(emojiText);
+      if emojiName == 'shrug' then
+        send(emojiText);
+      else
+        send(emojiText, message);
+      end
     end
   end
 end)
