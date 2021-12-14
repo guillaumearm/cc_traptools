@@ -51,7 +51,7 @@ print(HELP_MESSAGE)
 local function createSend(user)
   return function(text, emojiName, userMessage)
     userMessage = userMessage or '';
-    userMessage = string.gsub(userMessage, CMD_PREFIX .. emojiName);
+    userMessage = string.gsub(userMessage, CMD_PREFIX .. emojiName, '');
 
     return chat.sendFormattedMessage({
       text = text .. userMessage,
