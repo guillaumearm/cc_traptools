@@ -49,8 +49,9 @@ HELP_MESSAGE = "Available emojis: " .. HELP_MESSAGE;
 print(HELP_MESSAGE)
 
 local function createSend(user)
-  return function(text, userMessage)
+  return function(text, emojiName, userMessage)
     userMessage = userMessage or '';
+    userMessage = string.gsub(userMessage, CMD_PREFIX .. emojiName);
 
     return chat.sendFormattedMessage({
       text = text .. userMessage,
@@ -84,9 +85,9 @@ chat.listen(function(user, message)
   for emojiName, emojiText in pairs(EMOJIS) do
     if isCmd(emojiName) then
       if emojiName == 'shrug' then
-        send(emojiText);
+        send(emojiText, emojiName);
       else
-        send(emojiText, message);
+        send(emojiText, emojiName, message);
       end
     end
   end
