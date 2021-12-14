@@ -81,7 +81,7 @@ chat.listen(function(user, message)
     return;
   end
 
-  for emojiName, emojiText in valus(EMOJIS) do
+  for emojiName, emojiText in values(EMOJIS) do
     if isCmd(emojiName) then
       send(emojiText);
     end
