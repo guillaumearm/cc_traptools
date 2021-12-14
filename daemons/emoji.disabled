@@ -6,7 +6,6 @@ local chat = chatbox.create(el)
 local SHRUG_TEXT = '¯\\_(?)_/¯'
 
 local OK_TEXT = '\
-           _\
           |)`\
           | |\
           | |_____\
