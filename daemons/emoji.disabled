@@ -5,7 +5,6 @@ local chat = chatbox.create(el)
 
 local SHRUG_TEXT = '¯\\_(°_o)_/¯'
 local WOO_TEXT = '\\(^O^)/';
-local TABLE_TEXT = '(╯°□°）╯︵ ┻━┻';
 
 local OK_TEXT = '\
           |)`\
@@ -71,7 +70,6 @@ LOL===__           \\ \
 local EMOJIS = {
   shrug = SHRUG_TEXT,
   woo = WOO_TEXT,
-  table = TABLE_TEXT,
 
   hi = HI_TEXT,
   bye = BYE_TEXT,
@@ -84,8 +82,7 @@ local EMOJIS = {
 
 local ONE_LINE_EMOJIS = {
   shrug = true,
-  woo = true,
-  table = true
+  woo = true
 };
 
 local function isOneLineEmoji(emojiName)
