@@ -28,15 +28,17 @@ local ROCKET_TEXT = "\
         |\
        / \\\
       / _ \\\
-     |.o '.|\
-     |'._.'|\
+     |.o '. |\
+     |'._.' |\
      |     |\
-   ,'|  |  |`.\
+   ,' |  |  |`.\
   /  |  |  |  \\\
   |,-'--|--'-.| "
 
+print(ROCKET_TEXT);
+
 local SAPIN_TEXT = "\
-     !\
+      !\
     /!\\\
    /%;@\\\
   o/@,%\\o\
@@ -44,7 +46,7 @@ local SAPIN_TEXT = "\
  o/@'%',\\o\
  '^^^N^^^` "
 
-print(SAPIN_TEXT)
+-- print(SAPIN_TEXT)
 
 local EMOJIS = {
   shrug = SHRUG_TEXT,
