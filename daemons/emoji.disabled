@@ -1,7 +1,6 @@
-local CMD_PREFIX = '\\';
+local TRAPTOOLS_INSTALL_LINK = "https://raw.githubusercontent.com/guillaumearm/cc_traptools/master/install.lua";
 
-local el = eventloop.create()
-local chat = chatbox.create(el)
+local CMD_PREFIX = '\\';
 
 local SHRUG_TEXT = '¯\\_(°_o)_/¯'
 local WOO_TEXT = '\\(^O^)/';
@@ -85,6 +84,9 @@ local ONE_LINE_EMOJIS = {
   woo = true
 };
 
+local el = eventloop.create()
+local chat = chatbox.create(el)
+
 local function isOneLineEmoji(emojiName)
   return ONE_LINE_EMOJIS[emojiName] or false;
 end
@@ -122,12 +124,37 @@ local function help()
   }, "Trap Emoji Bot");
 end
 
+local function traptoolsInstaller()
+  return chat.sendFormattedMessage({
+    text = "Install Link",
+    color = "blue",
+    italic = true,
+    underlined = true,
+    hoverEvent = {
+      action = "show_text",
+      value = {
+        text = "Click on me to copy the TrapTools install command in your clipboard",
+        color = "gray"
+      }
+    },
+    clickEvent = {
+      action = "copy_to_clipboard",
+      value = "wget run " .. TRAPTOOLS_INSTALL_LINK
+    }
+  }, "TrapTools")
+end
+
 chat.listen(function(user, message)
   local send = createSend(user);
   local isCmd = createIsCmd(message);
 
   if message == CMD_PREFIX .. 'help' then
     help();
+    return;
+  end
+
+  if message == '!traptools' then
+    traptoolsInstaller();
     return;
   end
 
