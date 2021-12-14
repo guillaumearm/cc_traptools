@@ -28,21 +28,46 @@ local function doRitual(slot)
   })
 end
 
+local function redstoneEasterEgg()
+  local redstoneSignal = redstone.getInput('top');
+
+  if not redstoneSignal then
+    turtle.back();
+    turtle.back();
+    turtle.up();
+
+    if not redstone.getInput('front') then
+      t.useOnBlock();
+    end
+
+    turtle.down();
+    turtle.forward();
+    turtle.forward();
+
+    if not redstone.getInput('top') then
+      redstoneEasterEgg()
+    end
+  end
+end
+
 print('=> Rituals server started.')
 
 while true do
-  local event, username, message = os.pullEvent('chat');
+  local event, username, message = os.pullEvent();
+  if event == 'redstone' then
+    redstoneEasterEgg();
+  end
 
-  if message == '!day' then
+  if event == 'chat' and message == '!day' then
     print('=> day command received');
     doRitual(1);
-  elseif message == '!stoprain' then
+  elseif event == 'chat' and message == '!stoprain' then
     print('=> stoprain command received');
     doRitual(2);
-  elseif message == '!night' then
+  elseif event == 'chat' and message == '!night' then
     print('=> night command received');
     doRitual(3);
-  elseif message == '!help' then
+  elseif event == 'chat' and message == '!help' then
     sendFormattedMessage({
       text = "\n`!day` start a sunrise ritual\n`!stoprain` start a cloudshaping ritual\n`!night` start a moonfall ritual",
       color = 'green'
