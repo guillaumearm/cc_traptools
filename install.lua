@@ -3,7 +3,7 @@ local LIST_FILES = {'startup.lua', 'apis/bapil', 'apis/stacktrace', 'apis/eventl
                     'apis/logger', 'apis/daemon', 'bin/cat.lua', 'bin/daemon.lua', 'bin/seq.lua', 'bin/collect.lua',
                     'bin/ritual.lua'};
 
-local DAEMON_LIST = {'redserver', 'sdoors', 'emoji', 'rspeaker'}
+local DAEMON_LIST = {'redserver', 'sdoors', 'emoji', 'rspeaker', 'cowjar'}
 
 local REPO_PREFIX = 'https://raw.githubusercontent.com/guillaumearm/cc_traptools/master/'
 

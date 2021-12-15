@@ -1,0 +1,161 @@
+local t = peripheral.wrap('right');
+
+if not t or not t.useOnAnimal then
+  error('Missing husbandry automata core')
+end
+
+local periphConfig = t.getConfiguration();
+
+local USE_ANIMAL_COOLDOWN = periphConfig.useOnAnimal.baseCooldown / 1000;
+local USE_COOLDOWN = periphConfig.useOnBlock.baseCooldown / 1000;
+
+local COOLDOWN = math.max(USE_ANIMAL_COOLDOWN, USE_COOLDOWN);
+local CHECK_POLL_TIME = 2;
+
+local function suckMilk()
+  local ok, res = t.useOnAnimal();
+
+  if not ok then
+    error(res)
+  end
+end
+
+local function dropMilk()
+  local ok, res = t.useOnBlock();
+
+  if not ok then
+    error(res)
+  end
+end
+
+local function turnAround()
+  turtle.turnLeft()
+  turtle.turnLeft()
+end
+
+local function getIsTankType(tankType)
+  local tankName = 'mekanism:' .. tankType .. '_fluid_tank';
+
+  return function(itemName)
+    return itemName == tankName;
+  end
+end
+
+local isBasicTank = getIsTankType('basic');
+local isAdvancedTank = getIsTankType('advanced');
+local isEliteTank = getIsTankType('elite');
+local isUltimateTank = getIsTankType('ultimate');
+
+local function isMekaTank(name)
+  return isBasicTank(name) or isAdvancedTank(name) or isEliteTank(name) or isUltimateTank(name);
+end
+
+local function isValidAnimal()
+  local data = turtle.inspectAnimal();
+  if not data then
+    return false, 'no animal found'
+  end
+
+  if data.name ~= 'Cow' then
+    return false, 'need a cow'
+  end
+
+  if data.baby then
+    return false, 'need an adult cow'
+  end
+
+  return true;
+end
+
+local function waitCow()
+  local lastErr = nil;
+
+  while true do
+    local ok, err = isValidAnimal();
+
+    if ok then
+      print('=> adult cow found!')
+      break
+    end
+
+    if lastErr ~= err then
+      lastErr = err;
+      print(err);
+    end
+
+    os.sleep(CHECK_POLL_TIME);
+  end
+end
+
+local function waitTank()
+  local errPrinted = false;
+
+  while true do
+    local has_block, block_data = turtle.inspect();
+
+    if has_block and isMekaTank(block_data.name) then
+      print('=> fluid tank found!')
+      break
+    end
+
+    if not errPrinted then
+      print('need a valid mekanism tank');
+      errPrinted = true;
+    end
+
+    os.sleep(CHECK_POLL_TIME);
+  end
+end
+
+local function waitBucket()
+  local errPrinted = false;
+
+  while true do
+    local item = turtle.getItemDetail();
+
+    if item and item.name == 'minecraft:bucket' and turtle.getItemCount() == 1 then
+      print('=> empty bucket tank found!')
+      break
+    elseif not errPrinted then
+      print('need 1 empty bucket in the selected slot');
+      errPrinted = true;
+    end
+
+    os.sleep(CHECK_POLL_TIME);
+  end
+end
+
+local function main()
+  turtle.select(1)
+  print("=> wait for cooldown...")
+
+  os.sleep(USE_ANIMAL_COOLDOWN)
+  local has_block, block_data = turtle.inspect();
+
+  if has_block and isMekaTank(block_data.name) then
+    turnAround();
+  elseif has_block then
+    turtle.turnLeft();
+  end
+
+  waitCow();
+  turnAround();
+  waitTank();
+  turnAround();
+
+  waitBucket();
+
+  print("=> big COW in a big JAR automata started!")
+
+  while true do
+    suckMilk();
+    turnAround()
+
+    dropMilk()
+    turnAround();
+
+    os.sleep(COOLDOWN);
+  end
+end
+
+main();
