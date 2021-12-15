@@ -1,3 +1,4 @@
+-- a big COW in a big JAR !
 local t = peripheral.wrap('right');
 
 if not t or not t.useOnAnimal then
@@ -145,7 +146,7 @@ local function main()
 
   waitBucket();
 
-  print("=> big COW in a big JAR automata started!")
+  print("=> cowjar automata started!")
 
   while true do
     suckMilk();
