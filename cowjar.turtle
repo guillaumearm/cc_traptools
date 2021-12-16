@@ -245,24 +245,6 @@
     type = "right",
   },
   {
-    type = "forward",
-  },
-  {
-    type = "left",
-  },
-  {
-    type = "left",
-  },
-  {
-    type = "forward",
-  },
-  {
-    type = "right",
-  },
-  {
-    type = "right",
-  },
-  {
     payload = "minecraft:glass|||Glass",
     type = "place",
   },
@@ -296,12 +278,6 @@
   },
   {
     type = "forward",
-  },
-  {
-    type = "left",
-  },
-  {
-    type = "right",
   },
   {
     type = "right",
