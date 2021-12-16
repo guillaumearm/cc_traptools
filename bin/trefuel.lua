@@ -16,6 +16,11 @@ if not turtle then
   error('this program should be run on a cc turtle')
 end
 
+if turtle.getFuelLevel() == turtle.getFuelLimit() then
+  print('turtle already refueled!')
+  return;
+end
+
 if not charge then
   error('no automata found on the current turtle')
 end
@@ -36,4 +41,9 @@ while true do
   print('-> ', turtle.getFuelLevel(), '/', turtle.getFuelLimit())
 end
 
-print('turtle refueled!');
+if turtle.getFuelLevel() == turtle.getFuelLimit() then
+  print('turtle refueled!');
+else
+  print('warning: turtle is not fully refueled!');
+end
+
