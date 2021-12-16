@@ -66,7 +66,6 @@ local function getNeededItems()
   local needed = {};
 
   for _, action in ipairs(actions) do
-    print('===>', action.type, action.payload);
     local itemId = getItemIdFromAction(action);
 
     if itemId then
