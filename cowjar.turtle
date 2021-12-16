@@ -1,0 +1,322 @@
+{
+  {
+    type = "left",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "right",
+  },
+  {
+    payload = "minecraft:glass|||Glass",
+    type = "place",
+  },
+  {
+    type = "up",
+  },
+  {
+    payload = "minecraft:glass|||Glass",
+    type = "place",
+  },
+  {
+    type = "up",
+  },
+  {
+    payload = "minecraft:glass|||Glass",
+    type = "place",
+  },
+  {
+    type = "right",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "left",
+  },
+  {
+    payload = "minecraft:glass|||Glass",
+    type = "place",
+  },
+  {
+    type = "right",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "left",
+  },
+  {
+    payload = "minecraft:glass|||Glass",
+    type = "place",
+  },
+  {
+    type = "down",
+  },
+  {
+    payload = "minecraft:glass|||Glass",
+    type = "place",
+  },
+  {
+    type = "down",
+  },
+  {
+    payload = "minecraft:glass|||Glass",
+    type = "place",
+  },
+  {
+    type = "left",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "right",
+  },
+  {
+    payload = "minecraft:glass|||Glass",
+    type = "place",
+  },
+  {
+    type = "left",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "right",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "right",
+  },
+  {
+    payload = "minecraft:glass|||Glass",
+    type = "place",
+  },
+  {
+    type = "up",
+  },
+  {
+    payload = "minecraft:glass|||Glass",
+    type = "place",
+  },
+  {
+    type = "up",
+  },
+  {
+    payload = "minecraft:glass|||Glass",
+    type = "place",
+  },
+  {
+    type = "left",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "right",
+  },
+  {
+    payload = "minecraft:glass|||Glass",
+    type = "place",
+  },
+  {
+    type = "down",
+  },
+  {
+    payload = "minecraft:glass|||Glass",
+    type = "place",
+  },
+  {
+    type = "down",
+  },
+  {
+    payload = "minecraft:glass|||Glass",
+    type = "place",
+  },
+  {
+    type = "left",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "right",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "right",
+  },
+  {
+    payload = "minecraft:glass|||Glass",
+    type = "place",
+  },
+  {
+    type = "up",
+  },
+  {
+    payload = "minecraft:glass|||Glass",
+    type = "place",
+  },
+  {
+    type = "up",
+  },
+  {
+    payload = "minecraft:glass|||Glass",
+    type = "place",
+  },
+  {
+    type = "left",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "right",
+  },
+  {
+    type = "forward",
+  },
+  {
+    payload = "minecraft:glass|||Glass",
+    type = "place",
+  },
+  {
+    type = "down",
+  },
+  {
+    payload = "minecraft:glass|||Glass",
+    type = "place",
+  },
+  {
+    type = "down",
+  },
+  {
+    payload = "minecraft:glass|||Glass",
+    type = "place",
+  },
+  {
+    type = "back",
+  },
+  {
+    payload = "minecraft:glass|||Glass",
+    type = "place",
+  },
+  {
+    type = "up",
+  },
+  {
+    payload = "minecraft:glass|||Glass",
+    type = "place",
+  },
+  {
+    type = "up",
+  },
+  {
+    payload = "minecraft:glass|||Glass",
+    type = "place",
+  },
+  {
+    type = "up",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "right",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "left",
+  },
+  {
+    type = "left",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "right",
+  },
+  {
+    type = "right",
+  },
+  {
+    payload = "minecraft:glass|||Glass",
+    type = "place",
+  },
+  {
+    type = "up",
+  },
+  {
+    payload = "minecraft:oak_slab|||Oak Slab",
+    type = "place",
+  },
+  {
+    type = "left",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "down",
+  },
+  {
+    type = "down",
+  },
+  {
+    type = "down",
+  },
+  {
+    type = "right",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "left",
+  },
+  {
+    type = "right",
+  },
+  {
+    type = "right",
+  },
+  {
+    type = "forward",
+  },
+  {
+    payload = "industrialforegoing:mob_imprisonment_tool|||Mob Imprisonment Tool (minecraft:cow)",
+    type = "place",
+  },
+  {
+    type = "back",
+  },
+  {
+    type = "down",
+  },
+}
