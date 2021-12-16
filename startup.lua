@@ -29,8 +29,12 @@ daemon.install()
 local completion = require "cc.shell.completion"
 
 -- completion: cat.lua
-local cat_complete = completion.build({completion.file})
-shell.setCompletionFunction("bin/cat.lua", cat_complete)
+local cat_complete = completion.build({completion.file});
+shell.setCompletionFunction("bin/cat.lua", cat_complete);
+
+-- completion: tplay.lua
+local tplay_complete = completion.build({completion.file});
+shell.setCompletionFunction("bin/tplay.lua", tplay_complete);
 
 -- global utils
 _G.events = eventloop.create(); -- main event loop
