@@ -52,6 +52,10 @@ local shiftCode = 340;
 local ctrlCode = 341;
 
 local function main(savePath)
+  -- Print initial turtle fuel
+
+  print('=> Initial turtle loaded fuel: ', turtle.getFuelLevel(), '/', turtle.getFuelLimit());
+
   local el = eventloop.create();
   local actions = {};
   local selectedSlot = turtle.getSelectedSlot();
@@ -112,7 +116,9 @@ local function main(savePath)
 
     local ok, res = turtle.refuel(64);
 
-    if not ok then
+    if ok then
+      print('=> ', turtle.getFuelLevel(), '/', turtle.getFuelLimit());
+    else
       print('Refuel error: ', res);
     end
   end
@@ -181,13 +187,14 @@ local function main(savePath)
       if equiped then
         local slot = findEmptySlot()
         if slot then
-          turtle.select.slot()
+          turtle.select(slot)
           turtle.equipLeft();
         else
-          print('Error: No valid slot found to depose tool');
+          print('Warning: No valid slot found to depose tool!');
           -- TODO: wait for an empty slot
         end
       else
+        lastEquipedErr = lastEquipedErr or 'no valid tool provided!';
         return false, lastEquipedErr;
       end
 
@@ -263,7 +270,7 @@ local function main(savePath)
     elseif ctrlPressed and k == keys.z then
       -- Reverse last action
       reverseAction();
-    elseif ctrlPressed and k == keys.r then
+    elseif k == keys.r then
       -- Refuel the turtle (this is not recorded)
       refuel();
     elseif k == keys.w then
