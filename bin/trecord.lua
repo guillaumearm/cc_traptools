@@ -1,6 +1,12 @@
 -- Check cli arguments
 local filename = ...;
 
+local PICKAXE_TOOL = "minecraft:diamond_pickaxe";
+local AXE_TOOL = "minecraft:diamond_axe";
+local SHOVEL_TOOL = "minecraft:shovel_tool";
+
+local ALL_TOOLS = {PICKAXE_TOOL, AXE_TOOL, SHOVEL_TOOL};
+
 local function printUsage()
   print('usage: trecord <filename>');
 end
@@ -96,6 +102,148 @@ local function main(savePath)
     end
   end
 
+  local function refuel()
+    local neededFuel = turtle.getFuelLimit() - turtle.getFuelLevel();
+
+    if not neededFuel then
+      print('Turtle is aslready fully refueled.');
+      return;
+    end
+
+    local ok, res = turtle.refuel(64);
+
+    if not ok then
+      print('Refuel error: ', res);
+    end
+  end
+
+  local function findItemSlot(toolName)
+    for slotId = 1, 16, 1 do
+      local item = turtle.getItemDetail(slotId);
+
+      if item and item.name == toolName then
+        return slotId;
+      end
+    end
+
+    return nil;
+  end
+
+  local function findEmptySlot()
+    for slotId = 1, 16, 1 do
+      local itemCount = turtle.getItemCount(slotId);
+
+      if itemCount == 0 then
+        return slotId;
+      end
+    end
+
+    return nil;
+  end
+
+  local function reverseAction()
+    local lastAction = actions[#actions];
+    if not lastAction then
+      print('Error: Action queue is empty.')
+      return;
+    end
+
+    if lastAction.type == 'use' then
+      print('Error: last action "use" cannot be reversed')
+    end
+
+    local function tryDig(digFn, suckFn)
+      local equiped = false;
+      local lastEquipedErr = nil;
+      local digged = false;
+      local lastDigErr = nil;
+
+      for _, toolName in ipairs(ALL_TOOLS) do
+        local slot = findItemSlot(toolName);
+
+        if slot then
+          turtle.select(slot);
+          local ok, res = turtle.equipLeft();
+          if ok then
+            equiped = true;
+
+            digged, lastDigErr = digFn();
+            if digged then
+              suckFn();
+              break
+            end
+          else
+            lastEquipedErr = res;
+          end
+        end
+      end
+
+      if equiped then
+        local slot = findEmptySlot()
+        if slot then
+          turtle.select.slot()
+          turtle.equipLeft();
+        else
+          print('Error: No valid slot found to depose tool');
+          -- TODO: wait for an empty slot
+        end
+      else
+        return false, lastEquipedErr;
+      end
+
+      return digged, lastDigErr;
+    end
+
+    local function reverseLastAction(fn)
+      local ok, res = fn();
+
+      if ok then
+        table.remove(actions, #actions);
+      else
+        print('Error:', res)
+      end
+
+    end
+
+    if lastAction.type == 'forward' then
+      reverseLastAction(function()
+        return turtle.back()
+      end)
+    elseif lastAction.type == 'back' then
+      reverseLastAction(function()
+        return turtle.forward()
+      end)
+    elseif lastAction.type == 'up' then
+      reverseLastAction(function()
+        return turtle.down()
+      end)
+    elseif lastAction.type == 'down' then
+      reverseLastAction(function()
+        return turtle.up()
+      end)
+    elseif lastAction.type == 'left' then
+      reverseLastAction(function()
+        return turtle.turnRight()
+      end)
+    elseif lastAction.type == 'right' then
+      reverseLastAction(function()
+        return turtle.turnLeft()
+      end)
+    elseif lastAction.type == 'place' then
+      reverseLastAction(function()
+        return tryDig(turtle.dig, turtle.suck);
+      end)
+    elseif lastAction.type == 'placeUp' then
+      reverseLastAction(function()
+        return tryDig(turtle.digUp, turtle.suckUp);
+      end)
+    elseif lastAction.type == 'placeDown' then
+      reverseLastAction(function()
+        return tryDig(turtle.digDown, turtle.suckDown);
+      end)
+    end
+  end
+
   local ctrlPressed = false;
   local loopStoppedByUser = false;
 
@@ -109,12 +257,19 @@ local function main(savePath)
     if k == ctrlCode then
       ctrlPressed = true;
     elseif ctrlPressed and k == keys.q then
+      -- Quit
       loopStoppedByUser = true;
       el.stopLoop();
+    elseif ctrlPressed and k == keys.z then
+      -- Reverse last action
+      reverseAction();
+    elseif ctrlPressed and k == keys.r then
+      -- Refuel the turtle (this is not recorded)
+      refuel();
     elseif k == keys.w then
-      exec(create('forward'), turtle.forward)
+      exec(create('forward'), turtle.forward);
     elseif k == keys.s then
-      exec(create('back'), turtle.back)
+      exec(create('back'), turtle.back);
     elseif k == keys.d then
       exec(create('right'), turtle.turnRight);
       exec(create('forward'), turtle.forward);
@@ -126,26 +281,27 @@ local function main(savePath)
     elseif k == keys.e then
       exec(create('right'), turtle.turnRight);
     elseif k == keys.q then
-      exec(create('left'), turtle.turnLeft)
+      exec(create('left'), turtle.turnLeft);
     elseif k == keys.space then
       exec(create('up'), turtle.up);
     elseif k == shiftCode then
       exec(create('down'), turtle.down);
     elseif k == keys.right then
-      moveSlot(1)
+      moveSlot(1);
     elseif k == keys.left then
-      moveSlot(-1)
+      moveSlot(-1);
     elseif k == keys.down then
-      moveSlot(4)
+      moveSlot(4);
     elseif k == keys.up then
-      moveSlot(-4)
+      moveSlot(-4);
     elseif k == keys.enter then
       exec(create('place', getItemId()), turtle.place);
     elseif k == keys.pageUp then
       exec(create('placeUp', getItemId()), turtle.placeUp);
     elseif k == keys.pageDown then
-      exec(create('placeDown', getItemId()), turtle.placeDown)
+      exec(create('placeDown', getItemId()), turtle.placeDown);
     elseif k == keys.u then
+      -- Use (useOnBlock with automata)
       local t = getAutomata();
       if not t then
         print('Warning: no automata found');
@@ -155,16 +311,16 @@ local function main(savePath)
     end
   end)
 
-  el.startLoop()
+  el.startLoop();
 
   if not loopStoppedByUser then
-    print('Cancelled!')
+    print('Cancelled!');
     return;
   elseif #actions == 0 then
     print('Warning: no actions recorded.');
     return;
   else
-    save()
+    save();
   end
 end
 
