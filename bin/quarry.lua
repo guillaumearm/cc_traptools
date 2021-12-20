@@ -77,15 +77,15 @@ local function createSwitchTool(slotTool)
   end
 end
 
-local function createDigDown(slotTool)
+local function createDig(slotTool, digFn, detectFn)
   local switchTool = createSwitchTool(slotTool);
 
   return function()
-    if not turtle.detectDown() then
+    if not detectFn() then
       return true;
     end
 
-    local ok = turtle.digDown();
+    local ok = digFn();
 
     if ok then
       return true;
@@ -93,7 +93,7 @@ local function createDigDown(slotTool)
 
     switchTool(); -- TODO: handle error here ?
 
-    return turtle.digDown();
+    return digFn();
   end
 end
 
@@ -125,7 +125,8 @@ local function getNbFreeSlot()
 end
 
 local function quarry(slotTool)
-  local digDown = createDigDown(slotTool);
+  local digDown = createDig(slotTool, turtle.digDown, turtle.detectDown);
+  local dig = createDig(slotTool, turtle.dig, turtle.detect);
 
   local currentLayer = 1;
 
@@ -143,6 +144,13 @@ local function quarry(slotTool)
         if x < SIZE_X then
           -- regular move
           local ok = turtle.forward();
+
+          -- handle randomium ore
+          if not ok then
+            dig();
+            ok = turtle.forward();
+          end
+
           if not ok then
             print('Turtle blocked !');
             return 'blocked', currentLayer;
@@ -158,6 +166,13 @@ local function quarry(slotTool)
         end
 
         local ok = turtle.forward();
+
+        -- handle randomium ore
+        if not ok then
+          dig();
+          ok = turtle.forward();
+        end
+
         if not ok then
           print('Turtle blocked !');
           return 'blocked', currentLayer;
