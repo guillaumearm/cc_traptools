@@ -208,6 +208,9 @@ end
 
 -- Main
 local function main()
+  -- Print initial turtle fuel
+  print('=> Initial turtle loaded fuel: ', turtle.getFuelLevel(), '/', turtle.getFuelLimit());
+
   local items = getNeededItems();
   local ok = waitForItems(items);
 

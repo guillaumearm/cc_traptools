@@ -236,6 +236,9 @@ local function cleanupInventory(toolSlot)
 end
 
 local function main()
+  -- Print initial turtle fuel
+  print('=> Initial turtle loaded fuel: ', turtle.getFuelLevel(), '/', turtle.getFuelLimit());
+
   unequipCurrentItem();
   local pickaxeSlot, shovelSlot = getSlotForTools();
 
