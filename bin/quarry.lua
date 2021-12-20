@@ -142,9 +142,10 @@ local function quarry(slotTool)
 
         if x < SIZE_X then
           -- regular move
-          local ok, res = turtle.forward();
+          local ok = turtle.forward();
           if not ok then
-            error('[x] Forward error: ' .. res)
+            print('Turtle blocked !');
+            return 'blocked', currentLayer;
           end
         end
       end
@@ -156,9 +157,10 @@ local function quarry(slotTool)
           turtle.turnRight();
         end
 
-        local ok, res = turtle.forward();
+        local ok = turtle.forward();
         if not ok then
-          error('[y] Forward error: ' .. res)
+          print('Turtle blocked !');
+          return 'blocked', currentLayer;
         end
 
         if y % 2 == 0 then
@@ -267,7 +269,7 @@ local function main()
     local msg, layer = quarry(mainToolSlot);
 
     -- inventory is full
-    if msg == 'inventory_full' or 'blocked' then
+    if msg == 'inventory_full' then
       local nbLayerToMove = layer - 1;
 
       -- BACK TO HOME
@@ -292,6 +294,11 @@ local function main()
 
       -- BACK TO LAYER
       moveN(nbLayerToMove, turtle.down);
+    elseif msg == 'blocked' then
+      local nbLayerToMove = layer - 1;
+      moveN(nbLayerToMove + 1, turtle.up);
+      print('=> End of Quarry.')
+      return;
     else
       -- error quarry
       local err = layer;
