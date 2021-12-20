@@ -175,7 +175,7 @@ local function main(savePath)
 
             digged, lastDigErr = digFn();
             if digged then
-              suckFn();
+              suckFn(); -- not needed since dig fns automatically suck items
               break
             end
           else
