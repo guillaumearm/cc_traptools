@@ -184,11 +184,11 @@ local function quarry(slotTool)
       turtle.turnLeft();
     end
 
-    local ok, res = turtle.down();
+    local ok = turtle.down();
 
     if not ok then
-      print('Cannot move down: ', res);
-      return 'blocked', res;
+      print('Turtle blocked !');
+      return 'blocked', currentLayer;
     end
 
     currentLayer = currentLayer + 1;
@@ -267,7 +267,7 @@ local function main()
     local msg, layer = quarry(mainToolSlot);
 
     -- inventory is full
-    if msg == 'inventory_full' then
+    if msg == 'inventory_full' or 'blocked' then
       local nbLayerToMove = layer - 1;
 
       -- BACK TO HOME
