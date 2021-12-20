@@ -5,6 +5,8 @@ local PICKAXE_TOOL = "minecraft:diamond_pickaxe";
 local SHOVEL_TOOL = "minecraft:diamond_shovel";
 local AXE_TOOL = "minecraft:diamond_axe";
 
+local COAL_ITEM = 'minecraft:coal';
+
 local function getItemName(slot)
   local item = turtle.getItemDetail(slot);
 
@@ -239,12 +241,17 @@ local function cleanupInventory(toolSlot)
     if slotId ~= toolSlot then
       turtle.select(slotId)
 
+      if getItemName(slotId) == COAL_ITEM then
+        turtle.refuel();
+      end
+
       local ok, res = turtle.drop();
 
       if not ok and res ~= 'No items to drop' then
         turtle.select(initialSelectedSlot);
         return false, 'Cannot drop item in inventory: ' .. res;
       end
+
     end
   end
 
