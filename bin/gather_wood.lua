@@ -56,7 +56,8 @@ local function dropRestItems()
   local woodSlot = tstorage.findItemSlotByTag('minecraft:sapling', 'minecraft:planks', 'minecraft:logs_that_burn')
   if stickSlot or woodSlot then
     tpath.exec(goToStorageChest);
-    tstorage.dropDownAll();
+    tstorage.dropDownByName('minecraft:stick');
+    tstorage.dropDownByTag('minecraft:sapling', 'minecraft:planks', 'minecraft:logs_that_burn');
     tpath.execReverse(goToStorageChest);
   end
 end
