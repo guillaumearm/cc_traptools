@@ -55,7 +55,7 @@ end
 function exec(actions)
   local length = #actions;
 
-  for actionId = 0, length, 1 do
+  for actionId = 1, length, 1 do
     local move = actions[actionId];
 
     if type(move) == 'string' then
