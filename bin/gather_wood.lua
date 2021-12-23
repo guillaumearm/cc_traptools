@@ -52,7 +52,9 @@ local function dropSaplings()
 end
 
 local function dropRestItems()
-  if not tstorage.isEmpty() then
+  local stickSlot = tstorage.findItemSlotByName('minecraft:stick');
+  local woodSlot = tstorage.findItemSlotByTag('minecraft:sapling', 'minecraft:planks', 'minecraft:logs_that_burn')
+  if stickSlot or woodSlot then
     tpath.exec(goToStorageChest);
     tstorage.dropDownAll();
     tpath.execReverse(goToStorageChest);
@@ -81,6 +83,12 @@ while true do
   dropSaplings()
   dropRestItems();
 
+  local boneMealSlot = tstorage.findItemSlotByName('minecraft:bone_meal');
+  if boneMealSlot then
+    turtle.select(boneMealSlot);
+    turtle.place();
+  end
+
   turtle.forward();
   local ok, res = turtle.inspect();
   turtle.back();
@@ -92,11 +100,15 @@ while true do
     print('=> gather tree number ', totalTreeCounter);
 
     tpath.exec(goToRedstone);
-    redstone.setOutput('front', true)
-    os.sleep(0.5)
+    redstone.setOutput('front', true);
+    os.sleep(0.5);
     redstone.setOutput('front', false);
     tpath.execReverse(goToRedstone);
   end
 
-  os.sleep(10);
+  if tstorage.findItemSlotByName('minecraft:bone_meal') then
+    os.sleep(1);
+  else
+    os.sleep(20);
+  end
 end
