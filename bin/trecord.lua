@@ -270,6 +270,7 @@ local function main(savePath)
     elseif ctrlPressed and k == keys.z then
       -- Reverse last action
       reverseAction();
+      ctrlPressed = false;
     elseif k == keys.r then
       -- Refuel the turtle (this is not recorded)
       refuel();
