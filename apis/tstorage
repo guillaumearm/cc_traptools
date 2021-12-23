@@ -86,22 +86,22 @@ suckDownAll = createSuckAll(turtle.suckDown);
 local function createRefuel(findFn)
   return function(name, limit)
     limit = limit or turtle.getFuelLimit();
-
     local initialSlot = turtle.getSelectedSlot();
 
     while true do
       if turtle.getFuelLevel() >= limit then
+        turtle.select(initialSlot);
         return true
       end
 
       local slot = findFn(name);
       if not slot then
+        turtle.select(initialSlot);
         return false, 'no fuel'
       end
 
       turtle.select(slot);
       local ok, err = turtle.refuel();
-      turtle.select(initialSlot);
 
       if not ok then
         error('tstorage refuel fatal error: ' .. err);
@@ -115,20 +115,21 @@ refuelByTag = createRefuel(_findItemSlotByTag);
 
 local function createDropBy(dropFn, findFn)
   return function(...)
+    local initialSlot = turtle.getSelectedSlot();
     local droppedOnce = false;
 
     while true do
       local slot = findFn(...);
       if not slot then
+        turtle.select(initialSlot);
         return droppedOnce, 'No items to drop'
       end
 
-      local initialSlot = turtle.getSelectedSlot();
       turtle.select(slot);
       local ok, err = dropFn();
-      turtle.select(initialSlot);
 
       if not ok then
+        turtle.select(initialSlot);
         return false, err;
       end
 
