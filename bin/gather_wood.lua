@@ -1,10 +1,10 @@
-local FUEL_THRESHOLD = 20000;
-local NB_TREE_BEFORE_REFUEL = 1;
+local FUEL_THRESHOLD = 10000;
+local NB_TREE_BEFORE_REFUEL = 10;
 
 local fuelLevel = tstorage.logInternalFuel();
 
 if fuelLevel < 1 then
-  error('Not enough fuel')
+  error('Not enough fuel');
 end
 
 local function turtleNeedFuel()
@@ -34,7 +34,8 @@ end
 
 local goToOutputChest = {'up', {'back', 6}, 'right', {'forward', 3}, 'down'};
 local goToSaplingChest = {'left', 'forward', 'right', {'forward', 3}, 'up'};
-local goToStorageChest = {'up', {'back', 4}, 'left', {'forward', 2}};
+local goToStorageChest = {'up', {'back', 4}, 'right', {'forward', 2}};
+local goToRedstone = {{'back', 3}, 'right', {'forward', 6}, 'left', 'forward', 'right'};
 
 local function dropSaplings()
   if tstorage.findItemSlotByTag('minecraft:saplings') then
@@ -51,7 +52,7 @@ local function dropSaplings()
 end
 
 local function dropRestItems()
-  if tstorage.isEmpty() then
+  if not tstorage.isEmpty() then
     tpath.exec(goToStorageChest);
     tstorage.dropDownAll();
     tpath.execReverse(goToStorageChest);
@@ -59,11 +60,13 @@ local function dropRestItems()
 end
 
 local treeCounter = 0;
-local counter = 0;
+local totalTreeCounter = 0;
+local firstLaunch = true;
 
 while true do
-  if counter >= NB_TREE_BEFORE_REFUEL or turtleNeedFuel() then
-    counter = 0;
+  if firstLaunch or treeCounter >= NB_TREE_BEFORE_REFUEL or turtleNeedFuel() then
+    firstLaunch = false;
+    treeCounter = 0;
     tpath.exec(goToOutputChest);
 
     local ok, err = suckChest();
@@ -73,10 +76,10 @@ while true do
     if not ok then
       error(err);
     end
-
-    dropSaplings()
-    dropRestItems();
   end
+
+  dropSaplings()
+  dropRestItems();
 
   turtle.forward();
   local ok, res = turtle.inspect();
@@ -84,14 +87,16 @@ while true do
 
   if ok and res and res.tags and res.tags['minecraft:logs'] == true then
     treeCounter = treeCounter + 1;
-    counter = counter + 1;
+    totalTreeCounter = totalTreeCounter + 1;
 
-    print('=> gather tree number ', treeCounter);
+    print('=> gather tree number ', totalTreeCounter);
 
-    redstone.setOutput('back', true)
-    os.sleep(15)
-    redstone.setOutput('back', false);
+    tpath.exec(goToRedstone);
+    redstone.setOutput('front', true)
+    os.sleep(0.5)
+    redstone.setOutput('front', false);
+    tpath.execReverse(goToRedstone);
   end
 
-  os.sleep(15);
+  os.sleep(10);
 end
