@@ -80,20 +80,12 @@ local function createSwitchTool(slotTool)
 end
 
 local function createDig(slotTool, digFn, detectFn)
-  local switchTool = createSwitchTool(slotTool);
+  local _switchTool = createSwitchTool(slotTool);
 
   return function()
     if not detectFn() then
       return true;
     end
-
-    local ok = digFn();
-
-    if ok then
-      return true;
-    end
-
-    switchTool(); -- TODO: handle error here ?
 
     return digFn();
   end
@@ -264,14 +256,10 @@ local function main()
   print('=> Initial turtle loaded fuel: ', turtle.getFuelLevel(), '/', turtle.getFuelLimit());
 
   unequipCurrentItem();
-  local pickaxeSlot, shovelSlot = getSlotForTools();
+  local pickaxeSlot = getSlotForTools();
 
   if not pickaxeSlot then
     error('missing diamond pickaxe!');
-  end
-
-  if not shovelSlot then
-    error('missing diamond shovel!');
   end
 
   turtle.turnLeft();
@@ -282,7 +270,7 @@ local function main()
 
   equipTurtle(pickaxeSlot);
 
-  local mainToolSlot = shovelSlot;
+  local mainToolSlot = pickaxeSlot;
 
   -- DIG HERE
   print('Starting quarry ', SIZE_X, '*', SIZE_Y)
