@@ -24,7 +24,7 @@ function isEmpty()
 end
 
 local function _findItemSlotByName(...)
-  local names = pack(...);
+  local names = table.pack(...);
 
   for i = 1, 16, 1 do
     local item = turtle.getItemDetail(i);
@@ -40,10 +40,10 @@ end
 findItemSlotByName = _findItemSlotByName;
 
 local function _findItemSlotByTag(...)
-  local names = pack(...);
+  local names = table.pack(...);
 
   for i = 1, 16, 1 do
-    local item = turtle.getItemDetail(i);
+    local item = turtle.getItemDetail(i, true);
 
     for _, name in ipairs(names) do
       if item and item.tags and item.tags[name] == true then

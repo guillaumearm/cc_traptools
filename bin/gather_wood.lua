@@ -1,7 +1,7 @@
-local FUEL_THRESHOLD = 15000;
+local FUEL_THRESHOLD = 20000;
 local NB_TREE_BEFORE_REFUEL = 1;
 
-local fuelLevel = tstorage.logInternalFuel;
+local fuelLevel = tstorage.logInternalFuel();
 
 if fuelLevel < 1 then
   error('Not enough fuel')
