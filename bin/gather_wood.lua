@@ -11,8 +11,8 @@ local function turtleNeedFuel()
   return turtle.getFuelLevel() < FUEL_THRESHOLD;
 end
 
-local function suckChest()
-  local inv = peripheral.wrap('front');
+local function suckChest(side)
+  local inv = peripheral.wrap(side);
 
   if not inv or not inv.getItemDetail then
     return false, 'no inventory found';
@@ -32,10 +32,38 @@ local function suckChest()
   return true;
 end
 
-local goToOutputChest = {'up', {'back', 6}, 'right', {'forward', 3}, 'down'};
-local goToSaplingChest = {'left', 'forward', 'right', {'forward', 3}, 'up'};
-local goToStorageChest = {'up', {'back', 4}, 'right', {'forward', 2}};
-local goToRedstone = {{'back', 3}, 'right', {'forward', 6}, 'left', 'forward', 'right'};
+local function left(n)
+  return {'left', n}
+end
+
+local function right(n)
+  return {'right', n}
+end
+
+local function forward(n)
+  return {'forward', n}
+end
+
+local function back(n)
+  return {'back', n}
+end
+
+local function up(n)
+  return {'up', n}
+end
+
+local function down(n)
+  return {'down', n}
+end
+
+local goToOutputChest = {right(1), forward(4), left(1)};
+local goToSaplingChest = {left(1), forward(1), right(1), forward(3), up(1)};
+local goToStorageChest = {right(2), forward(2)};
+local goToRedstone = {back(2), right(1), forward(6)};
+
+local function getFertilizerSlot()
+  return tstorage.findItemSlotByName('thermal:phytogro') or tstorage.findItemSlotByName('minecraft:bone_meal');
+end
 
 local function dropSaplings()
   if tstorage.findItemSlotByTag('minecraft:saplings') then
@@ -56,8 +84,8 @@ local function dropRestItems()
   local woodSlot = tstorage.findItemSlotByTag('minecraft:sapling', 'minecraft:planks', 'minecraft:logs_that_burn')
   if stickSlot or woodSlot then
     tpath.exec(goToStorageChest);
-    tstorage.dropDownByName('minecraft:stick');
-    tstorage.dropDownByTag('minecraft:sapling', 'minecraft:planks', 'minecraft:logs_that_burn');
+    tstorage.dropByName('minecraft:stick');
+    tstorage.dropByTag('minecraft:sapling', 'minecraft:planks', 'minecraft:logs_that_burn');
     tpath.execReverse(goToStorageChest);
   end
 end
@@ -66,13 +94,32 @@ local treeCounter = 0;
 local totalTreeCounter = 0;
 local firstLaunch = true;
 
+local function waitForInventory(side)
+  local counter = 0;
+
+  while true do
+    local inv = peripheral.wrap(side);
+
+    if inv and inv.getItemDetail then
+      break
+    elseif counter == 5 then
+      print('Waiting for inventory (' .. side .. ')...');
+      printed = true;
+    end
+
+    counter = counter + 1;
+    os.sleep(1);
+  end
+end
+
 while true do
   if firstLaunch or treeCounter >= NB_TREE_BEFORE_REFUEL or turtleNeedFuel() then
     firstLaunch = false;
     treeCounter = 0;
     tpath.exec(goToOutputChest);
 
-    local ok, err = suckChest();
+    waitForInventory('front')
+    local ok, err = suckChest('front');
 
     tpath.execReverse(goToOutputChest);
 
@@ -84,10 +131,19 @@ while true do
   dropSaplings()
   dropRestItems();
 
-  local boneMealSlot = tstorage.findItemSlotByName('minecraft:bone_meal');
-  if boneMealSlot then
-    turtle.select(boneMealSlot);
-    turtle.place();
+  while true do
+    local fertilizerSlot = getFertilizerSlot();
+    if fertilizerSlot then
+      turtle.select(fertilizerSlot);
+      local ok = turtle.place();
+      if not ok then
+        break
+      end
+    else
+      break
+    end
+
+    os.sleep(0.5);
   end
 
   turtle.forward();
@@ -109,7 +165,7 @@ while true do
     os.sleep(10);
   end
 
-  if tstorage.findItemSlotByName('minecraft:bone_meal') then
+  if getFertilizerSlot() then
     os.sleep(2);
   else
     os.sleep(20);
