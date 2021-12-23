@@ -59,6 +59,7 @@ end
 local goToOutputChest = {right(1), forward(4), left(1)};
 local goToSaplingChest = {left(1), forward(1), right(1), forward(3), up(1)};
 local goToStorageChest = {right(2), forward(2)};
+local goToFertilizerChest = {right(2), forward(2), up()};
 local goToRedstone = {back(2), right(1), forward(6)};
 
 local function getFertilizerSlot()
@@ -90,6 +91,21 @@ local function dropRestItems()
   end
 end
 
+local function reloadFertilizer()
+  local slot = tstorage.findItemSlotByName('thermal:phytogro') or tstorage.findEmptySlot();
+
+  if slot then
+    local n = turtle.getItemSpace(slot);
+    if n > 0 then
+      tpath.exec(goToFertilizerChest);
+      turtle.suck(n);
+      tpath.execReverse(goToFertilizerChest);
+    end
+  else
+    error('No phytogro fertilizer found and no more space in turtle inventory!');
+  end
+end
+
 local treeCounter = 0;
 local totalTreeCounter = 0;
 local firstLaunch = true;
@@ -104,7 +120,6 @@ local function waitForInventory(side)
       break
     elseif counter == 5 then
       print('Waiting for inventory (' .. side .. ')...');
-      printed = true;
     end
 
     counter = counter + 1;
@@ -113,7 +128,9 @@ local function waitForInventory(side)
 end
 
 while true do
-  if firstLaunch or treeCounter >= NB_TREE_BEFORE_REFUEL or turtleNeedFuel() then
+  local shouldMoveToChest = firstLaunch or treeCounter >= NB_TREE_BEFORE_REFUEL or turtleNeedFuel();
+
+  if shouldMoveToChest then
     firstLaunch = false;
     treeCounter = 0;
     tpath.exec(goToOutputChest);
@@ -162,7 +179,8 @@ while true do
     redstone.setOutput('front', false);
     tpath.execReverse(goToRedstone);
 
-    os.sleep(10);
+    reloadFertilizer();
+    os.sleep(8);
   end
 
   if getFertilizerSlot() then
