@@ -1,0 +1,158 @@
+-- Turtle storage lib
+function logInternalFuel()
+  local fuelLevel = turtle.getFuelLevel();
+  print('Turtle fuel: ', fuelLevel, '/', turtle.getFuelLimit());
+  return fuelLevel;
+end
+
+local function _getNbFreeSlots()
+  local counter = 0;
+
+  for i = 1, 16, 1 do
+    if not turtle.getItemDetail(i) then
+      counter = counter + 1;
+    end
+  end
+
+  return counter;
+end
+
+getNbFreeSlots = _getNbFreeSlots;
+
+function isEmpty()
+  return _getNbFreeSlots() == 16;
+end
+
+local function _findItemSlotByName(...)
+  local names = pack(...);
+
+  for i = 1, 16, 1 do
+    local item = turtle.getItemDetail(i);
+
+    for _, name in ipairs(names) do
+      if item and item.name == name then
+        return i
+      end
+    end
+  end
+end
+
+findItemSlotByName = _findItemSlotByName;
+
+local function _findItemSlotByTag(...)
+  local names = pack(...);
+
+  for i = 1, 16, 1 do
+    local item = turtle.getItemDetail(i);
+
+    for _, name in ipairs(names) do
+      if item and item.tags and item.tags[name] == true then
+        return i
+      end
+    end
+  end
+end
+
+findItemSlotByTag = _findItemSlotByTag;
+
+function findEmptySlot()
+  for i = 1, 16, 1 do
+    if turtle.getItemCount() == 0 then
+      return i;
+    end
+  end
+end
+
+local function createSuckAll(suckFn)
+  return function()
+    while true do
+      local ok, err = suckFn();
+
+      if not ok and err == 'No items to take' then
+        break
+      elseif not ok then
+        return false, err;
+      end
+    end
+
+    return true;
+  end
+end
+
+suckAll = createSuckAll(turtle.suck);
+suckUpAll = createSuckAll(turtle.suckUp);
+suckDownAll = createSuckAll(turtle.suckDown);
+
+local function createRefuel(findFn)
+  return function(name, limit)
+    limit = limit or turtle.getFuelLimit();
+
+    local initialSlot = turtle.getSelectedSlot();
+
+    while true do
+      if turtle.getFuelLevel() >= limit then
+        return true
+      end
+
+      local slot = findFn(name);
+      if not slot then
+        return false, 'no fuel'
+      end
+
+      turtle.select(slot);
+      local ok, err = turtle.refuel();
+      turtle.select(initialSlot);
+
+      if not ok then
+        error('tstorage refuel fatal error: ' .. err);
+      end
+    end
+  end
+end
+
+refuelByName = createRefuel(_findItemSlotByName);
+refuelByTag = createRefuel(_findItemSlotByTag);
+
+local function createDropBy(dropFn, findFn)
+  return function(...)
+    local droppedOnce = false;
+
+    while true do
+      local slot = findFn(...);
+      if not slot then
+        return droppedOnce, 'No items to drop'
+      end
+
+      local initialSlot = turtle.getSelectedSlot();
+      turtle.select(slot);
+      local ok, err = dropFn();
+      turtle.select(initialSlot);
+
+      if not ok then
+        return false, err;
+      end
+
+      droppedOnce = true;
+    end
+  end
+end
+
+local function getFirstAvailableItem()
+  for i = 1, 16, 1 do
+    if turtle.getItemDetail(i) then
+      return i;
+    end
+  end
+end
+
+dropAll = createDropBy(turtle.drop, getFirstAvailableItem);
+dropByName = createDropBy(turtle.drop, _findItemSlotByName);
+dropByTag = createDropBy(turtle.drop, _findItemSlotByTag);
+
+dropUpAll = createDropBy(turtle.dropUp, getFirstAvailableItem);
+dropUpByName = createDropBy(turtle.dropUp, _findItemSlotByName);
+dropUpByTag = createDropBy(turtle.dropUp, _findItemSlotByTag);
+
+dropDownAll = createDropBy(turtle.dropDown, getFirstAvailableItem);
+dropDownByName = createDropBy(turtle.dropDown, _findItemSlotByName);
+dropDownByTag = createDropBy(turtle.dropDown, _findItemSlotByTag);
