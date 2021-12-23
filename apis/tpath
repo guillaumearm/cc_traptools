@@ -1,28 +1,33 @@
 local RETRY_TIMEOUT = 3;
 
-local ACTIONS = {
-  up = turtle.up,
-  down = turtle.down,
-  left = turtle.turnLeft,
-  right = turtle.turnRight,
-  forward = turtle.forward,
-  back = turtle.back
-}
+local function getActions()
+  return {
+    up = turtle.up,
+    down = turtle.down,
+    left = turtle.turnLeft,
+    right = turtle.turnRight,
+    forward = turtle.forward,
+    back = turtle.back
+  }
+end
 
-local REVERSE_ACTIONS = {
-  up = turtle.down,
-  down = turtle.up,
-  left = turtle.turnRight,
-  right = turtle.turnLeft,
-  forward = turtle.back,
-  back = turtle.forward
-}
+local function getReverseActions()
+  return {
+    up = turtle.down,
+    down = turtle.up,
+    left = turtle.turnRight,
+    right = turtle.turnLeft,
+    forward = turtle.back,
+    back = turtle.forward
+  }
+end
 
 local function executeAction(actionName, isReverse)
-  local actions = ACTIONS;
-
+  local actions;
   if isReverse then
-    actions = REVERSE_ACTIONS;
+    actions = getReverseActions();
+  else
+    actions = getActions();
   end
 
   local action = actions[actionName];
