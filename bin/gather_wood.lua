@@ -105,10 +105,12 @@ while true do
     os.sleep(0.5);
     redstone.setOutput('front', false);
     tpath.execReverse(goToRedstone);
+
+    os.sleep(10);
   end
 
   if tstorage.findItemSlotByName('minecraft:bone_meal') then
-    os.sleep(1);
+    os.sleep(2);
   else
     os.sleep(20);
   end
