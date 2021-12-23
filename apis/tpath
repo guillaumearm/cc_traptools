@@ -74,7 +74,7 @@ end
 function execReverse(actions)
   local length = #actions;
 
-  for actionId = length, 0, -1 do
+  for actionId = length, 1, -1 do
     local move = actions[actionId];
 
     if type(move) == 'string' then
