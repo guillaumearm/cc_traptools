@@ -1,5 +1,5 @@
 local APIS_TO_LOAD = {'apis/eventloop', 'apis/net', 'apis/colorutils', 'apis/rsw', 'apis/rsr', 'apis/rsclient',
-                      'apis/chatbox', 'apis/mclock', 'apis/msequencer'}
+                      'apis/chatbox', 'apis/mclock', 'apis/msequencer', 'apis/tpath'}
 
 -- 0. add /bin in path
 shell.setPath(shell.path(0) .. ":/bin")

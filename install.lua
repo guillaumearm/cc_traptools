@@ -1,8 +1,8 @@
 local LIST_FILES = {'startup.lua', 'apis/bapil', 'apis/stacktrace', 'apis/eventloop', 'apis/colorutils', 'apis/rsw',
                     'apis/rsr', 'apis/rsclient', 'apis/net', 'apis/chatbox', 'apis/mclock', 'apis/msequencer',
-                    'apis/logger', 'apis/daemon', 'bin/cat.lua', 'bin/daemon.lua', 'bin/seq.lua', 'bin/collect.lua',
-                    'bin/ritual.lua', 'bin/trefuel.lua', 'bin/trecord.lua', 'bin/tplay.lua', 'bin/quarry.lua',
-                    'cowjar.build'};
+                    'apis/logger', 'apis/daemon', 'apis/tpath', 'bin/cat.lua', 'bin/daemon.lua', 'bin/seq.lua',
+                    'bin/collect.lua', 'bin/ritual.lua', 'bin/trefuel.lua', 'bin/trecord.lua', 'bin/tplay.lua',
+                    'bin/quarry.lua', 'cowjar.build'};
 
 local DAEMON_LIST = {'redserver', 'sdoors', 'emoji', 'rspeaker', 'cowjar'}
 

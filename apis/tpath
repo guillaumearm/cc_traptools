@@ -1,0 +1,86 @@
+local RETRY_TIMEOUT = 3;
+
+local ACTIONS = {
+  up = turtle.up,
+  down = turtle.down,
+  left = turtle.turnLeft,
+  right = turtle.turnRight,
+  forward = turtle.forward,
+  back = turtle.back
+}
+
+local REVERSE_ACTIONS = {
+  up = turtle.down,
+  down = turtle.up,
+  left = turtle.turnRight,
+  right = turtle.turnLeft,
+  forward = turtle.back,
+  back = turtle.forward
+}
+
+local function executeAction(actionName, isReverse)
+  local actions = ACTIONS;
+
+  if isReverse then
+    actions = REVERSE_ACTIONS;
+  end
+
+  local action = actions[actionName];
+  if not action then
+    error('Invalid given actionName: ' .. actionName)
+  end
+
+  local errPrinted = false;
+
+  while true do
+    local ok, err = action();
+    if ok then
+      break
+    end
+
+    if not errPrinted then
+      print('=> tpath error: ', err);
+      errPrinted = true;
+    end
+
+    os.sleep(RETRY_TIMEOUT);
+  end
+end
+
+function exec(actions)
+  local length = #actions;
+
+  for actionId = 0, length, 1 do
+    local move = actions[actionId];
+
+    if type(move) == 'string' then
+      executeAction(move)
+    else
+      local actionName = move[1];
+      local n = move[2] or 1;
+
+      for _ = 1, n, 1 do
+        executeAction(actionName);
+      end
+    end
+  end
+end
+
+function execReverse(actions)
+  local length = #actions;
+
+  for actionId = length, 0, -1 do
+    local move = actions[actionId];
+
+    if type(move) == 'string' then
+      executeAction(move, true)
+    else
+      local actionName = move[1];
+      local n = move[2] or 1;
+
+      for _ = 1, n, 1 do
+        executeAction(actionName, true);
+      end
+    end
+  end
+end
