@@ -81,12 +81,14 @@ local function dropSaplings()
 end
 
 local function dropRestItems()
-  local stickSlot = tstorage.findItemSlotByName('minecraft:stick');
-  local woodSlot = tstorage.findItemSlotByTag('minecraft:sapling', 'minecraft:planks', 'minecraft:logs_that_burn')
-  if stickSlot or woodSlot then
+  local slot = tstorage.findItemSlotByName('minecraft:stick') or
+                 tstorage.findItemSlotByTag('minecraft:sapling', 'minecraft:planks', 'minecraft:logs_that_burn',
+      'forge:fruits');
+
+  if slot then
     tpath.exec(goToStorageChest);
     tstorage.dropByName('minecraft:stick');
-    tstorage.dropByTag('minecraft:sapling', 'minecraft:planks', 'minecraft:logs_that_burn');
+    tstorage.dropByTag('minecraft:sapling', 'minecraft:planks', 'minecraft:logs_that_burn', 'forge:fruits');
     tpath.execReverse(goToStorageChest);
   end
 end
