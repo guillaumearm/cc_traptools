@@ -1,0 +1,476 @@
+{
+  {
+    type = "up",
+  },
+  {
+    type = "right",
+  },
+  {
+    payload = "minecraft:oak_planks|||Oak Planks",
+    type = "placeDown",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "left",
+  },
+  {
+    payload = "minecraft:oak_planks|||Oak Planks",
+    type = "placeDown",
+  },
+  {
+    type = "forward",
+  },
+  {
+    payload = "minecraft:oak_planks|||Oak Planks",
+    type = "placeDown",
+  },
+  {
+    type = "forward",
+  },
+  {
+    payload = "minecraft:oak_planks|||Oak Planks",
+    type = "placeDown",
+  },
+  {
+    type = "forward",
+  },
+  {
+    payload = "minecraft:oak_planks|||Oak Planks",
+    type = "placeDown",
+  },
+  {
+    type = "forward",
+  },
+  {
+    payload = "minecraft:oak_planks|||Oak Planks",
+    type = "placeDown",
+  },
+  {
+    type = "left",
+  },
+  {
+    type = "forward",
+  },
+  {
+    payload = "minecraft:oak_planks|||Oak Planks",
+    type = "placeDown",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "left",
+  },
+  {
+    payload = "minecraft:oak_planks|||Oak Planks",
+    type = "placeDown",
+  },
+  {
+    type = "forward",
+  },
+  {
+    payload = "minecraft:oak_planks|||Oak Planks",
+    type = "placeDown",
+  },
+  {
+    type = "forward",
+  },
+  {
+    payload = "minecraft:oak_planks|||Oak Planks",
+    type = "placeDown",
+  },
+  {
+    type = "forward",
+  },
+  {
+    payload = "minecraft:oak_planks|||Oak Planks",
+    type = "placeDown",
+  },
+  {
+    type = "forward",
+  },
+  {
+    payload = "minecraft:oak_planks|||Oak Planks",
+    type = "placeDown",
+  },
+  {
+    type = "right",
+  },
+  {
+    type = "right",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "right",
+  },
+  {
+    payload = "create:water_wheel|||Water Wheel",
+    type = "place",
+  },
+  {
+    type = "left",
+  },
+  {
+    type = "up",
+  },
+  {
+    payload = "create:gearbox|||Gearbox",
+    type = "placeDown",
+  },
+  {
+    type = "forward",
+  },
+  {
+    payload = "tconstruct:clear_glass|||Clear Glass",
+    type = "placeDown",
+  },
+  {
+    type = "forward",
+  },
+  {
+    payload = "tconstruct:clear_glass|||Clear Glass",
+    type = "placeDown",
+  },
+  {
+    type = "right",
+  },
+  {
+    type = "forward",
+  },
+  {
+    payload = "tconstruct:clear_glass|||Clear Glass",
+    type = "placeDown",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "right",
+  },
+  {
+    payload = "tconstruct:clear_glass|||Clear Glass",
+    type = "placeDown",
+  },
+  {
+    type = "forward",
+  },
+  {
+    payload = "tconstruct:clear_glass|||Clear Glass",
+    type = "placeDown",
+  },
+  {
+    type = "forward",
+  },
+  {
+    payload = "create:gearbox|||Gearbox",
+    type = "placeDown",
+  },
+  {
+    type = "forward",
+  },
+  {
+    payload = "tconstruct:clear_glass|||Clear Glass",
+    type = "placeDown",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "right",
+  },
+  {
+    payload = "tconstruct:clear_glass|||Clear Glass",
+    type = "placeDown",
+  },
+  {
+    type = "forward",
+  },
+  {
+    payload = "tconstruct:clear_glass|||Clear Glass",
+    type = "placeDown",
+  },
+  {
+    type = "forward",
+  },
+  {
+    payload = "tconstruct:clear_glass|||Clear Glass",
+    type = "placeDown",
+  },
+  {
+    type = "right",
+  },
+  {
+    type = "forward",
+  },
+  {
+    payload = "tconstruct:clear_glass|||Clear Glass",
+    type = "placeDown",
+  },
+  {
+    type = "up",
+  },
+  {
+    payload = "tconstruct:clear_glass|||Clear Glass",
+    type = "placeDown",
+  },
+  {
+    type = "forward",
+  },
+  {
+    payload = "tconstruct:clear_glass|||Clear Glass",
+    type = "placeDown",
+  },
+  {
+    type = "forward",
+  },
+  {
+    payload = "tconstruct:clear_glass|||Clear Glass",
+    type = "placeDown",
+  },
+  {
+    type = "forward",
+  },
+  {
+    payload = "tconstruct:clear_glass|||Clear Glass",
+    type = "placeDown",
+  },
+  {
+    type = "right",
+  },
+  {
+    type = "forward",
+  },
+  {
+    payload = "tconstruct:clear_glass|||Clear Glass",
+    type = "placeDown",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "right",
+  },
+  {
+    payload = "tconstruct:clear_glass|||Clear Glass",
+    type = "placeDown",
+  },
+  {
+    type = "forward",
+  },
+  {
+    payload = "tconstruct:clear_glass|||Clear Glass",
+    type = "placeDown",
+  },
+  {
+    type = "forward",
+  },
+  {
+    payload = "tconstruct:clear_glass|||Clear Glass",
+    type = "placeDown",
+  },
+  {
+    type = "forward",
+  },
+  {
+    payload = "tconstruct:clear_glass|||Clear Glass",
+    type = "placeDown",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "right",
+  },
+  {
+    payload = "tconstruct:clear_glass|||Clear Glass",
+    type = "placeDown",
+  },
+  {
+    type = "forward",
+  },
+  {
+    payload = "tconstruct:clear_glass|||Clear Glass",
+    type = "placeDown",
+  },
+  {
+    type = "forward",
+  },
+  {
+    payload = "tconstruct:clear_glass|||Clear Glass",
+    type = "placeDown",
+  },
+  {
+    type = "right",
+  },
+  {
+    type = "forward",
+  },
+  {
+    payload = "minecraft:oak_planks|||Oak Planks",
+    type = "place",
+  },
+  {
+    type = "back",
+  },
+  {
+    payload = "minecraft:oak_planks|||Oak Planks",
+    type = "place",
+  },
+  {
+    type = "right",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "right",
+  },
+  {
+    type = "right",
+  },
+  {
+    payload = "minecraft:oak_planks|||Oak Planks",
+    type = "place",
+  },
+  {
+    type = "back",
+  },
+  {
+    payload = "minecraft:oak_planks|||Oak Planks",
+    type = "place",
+  },
+  {
+    type = "left",
+  },
+  {
+    type = "back",
+  },
+  {
+    payload = "minecraft:oak_planks|||Oak Planks",
+    type = "place",
+  },
+  {
+    type = "back",
+  },
+  {
+    payload = "minecraft:oak_planks|||Oak Planks",
+    type = "place",
+  },
+  {
+    type = "right",
+  },
+  {
+    payload = "minecraft:oak_planks|||Oak Planks",
+    type = "place",
+  },
+  {
+    type = "left",
+  },
+  {
+    type = "up",
+  },
+  {
+    payload = "minecraft:oak_planks|||Oak Planks",
+    type = "placeDown",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "right",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "down",
+  },
+  {
+    payload = "minecraft:water_bucket|||Water Bucket",
+    type = "placeDown",
+  },
+  {
+    type = "up",
+  },
+  {
+    type = "right",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "left",
+  },
+  {
+    type = "left",
+  },
+  {
+    payload = "minecraft:oak_slab|||Oak Slab",
+    type = "place",
+  },
+  {
+    type = "back",
+  },
+  {
+    type = "back",
+  },
+  {
+    type = "down",
+  },
+  {
+    payload = "minecraft:oak_slab|||Oak Slab",
+    type = "place",
+  },
+  {
+    type = "right",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "left",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "up",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "left",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "right",
+  },
+  {
+    type = "forward",
+  },
+  {
+    type = "down",
+  },
+  {
+    type = "down",
+  },
+  {
+    type = "down",
+  },
+}
