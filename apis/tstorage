@@ -1,4 +1,8 @@
 -- Turtle storage lib
+if not turtle then
+  turtle = {}
+end
+
 function logInternalFuel()
   local fuelLevel = turtle.getFuelLevel();
   print('Turtle fuel: ', fuelLevel, '/', turtle.getFuelLimit());
